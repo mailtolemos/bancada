@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getDictionary, isLocale } from "@bancada/core";
+import { getDictionary, isLocale } from "@futiq/core";
 import { getStandings, isDemo } from "@/lib/data";
 import { StandingsTable } from "@/components/StandingsTable";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";

@@ -4,12 +4,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Bancada — Todo o futebol, ao segundo",
-    template: "%s · Bancada",
+    default: "FUTIQ — Todo o futebol, ao segundo",
+    template: "%s · FUTIQ",
   },
   description:
     "Resultados ao vivo, classificações, onze inicial, golos e notícias de múltiplas fontes fiáveis. Liga Portugal primeiro, o mundo a seguir.",
-  applicationName: "Bancada",
+  applicationName: "FUTIQ",
 };
 
 export const viewport: Viewport = {

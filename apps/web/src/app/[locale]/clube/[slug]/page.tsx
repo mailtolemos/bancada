@@ -4,7 +4,7 @@ import {
   getClub,
   getDictionary,
   isLocale,
-} from "@bancada/core";
+} from "@futiq/core";
 import { getMatches, getNews, getStandings, isDemo } from "@/lib/data";
 import { Crest } from "@/components/Crest";
 import { LiveMatches } from "@/components/LiveMatches";

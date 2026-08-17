@@ -1,5 +1,6 @@
-import type { Dictionary, Locale, NewsItem } from "@bancada/core";
+import type { Dictionary, Locale, NewsItem } from "@futiq/core";
 import { timeAgo } from "@/lib/format";
+import { NewsImage } from "./NewsImage";
 
 export function NewsCard({
   item,
@@ -17,16 +18,7 @@ export function NewsCard({
       {...(external ? { href: item.link, target: "_blank", rel: "noopener noreferrer" } : {})}
       className="card group flex gap-3 overflow-hidden p-3 transition-transform hover:-translate-y-0.5 hover:shadow-md"
     >
-      {item.image && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={item.image}
-          alt=""
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          className="h-20 w-28 shrink-0 rounded-lg bg-neutral-200 object-cover dark:bg-neutral-800"
-        />
-      )}
+      {item.image && <NewsImage src={item.image} />}
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px]">
           <span className="chip bg-pitch-600/10 text-pitch-700 dark:bg-pitch-500/15 dark:text-pitch-300">

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getDictionary, isLocale } from "@bancada/core";
+import { getDictionary, isLocale } from "@futiq/core";
 import { Header } from "@/components/Header";
 
 // Live scores: render dinâmico sempre — nada de HTML congelado no build.

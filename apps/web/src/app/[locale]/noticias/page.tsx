@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CLUBS, NEWS_SOURCES, getDictionary, isLocale } from "@bancada/core";
+import { CLUBS, NEWS_SOURCES, getDictionary, isLocale } from "@futiq/core";
 import { getNews } from "@/lib/data";
 import { NewsCard } from "@/components/NewsCard";
 import { SectionHeader } from "@/components/SectionHeader";

@@ -5,14 +5,14 @@
  * deteção automática de clubes para filtragem.
  */
 import Parser from "rss-parser";
-import { NEWS_SOURCES, detectClubs, type NewsItem } from "@bancada/core";
+import { NEWS_SOURCES, detectClubs, type NewsItem } from "@futiq/core";
 import { cached } from "./cache";
 import { demoNews } from "./demo";
 
 const parser = new Parser({
   timeout: 8000,
   headers: {
-    "User-Agent": "Bancada/0.1 (agregador de notícias de futebol; +https://bancada.app)",
+    "User-Agent": "FUTIQ/0.1 (agregador de notícias de futebol; +https://futiq.app)",
     Accept: "application/rss+xml, application/xml, text/xml, */*",
   },
 });
@@ -20,7 +20,7 @@ const parser = new Parser({
 const NEWS_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
 function isDemo(): boolean {
-  return process.env.BANCADA_DEMO === "1";
+  return process.env.FUTIQ_DEMO === "1";
 }
 
 async function fetchFeed(sourceId: string): Promise<NewsItem[]> {

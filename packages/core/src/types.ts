@@ -1,5 +1,5 @@
 /**
- * Bancada — modelo de domínio partilhado (web + mobile).
+ * FUTIQ — modelo de domínio partilhado (web + mobile).
  * Todos os fornecedores de dados (football-data.org, API-Football, …)
  * são normalizados para estes tipos. A UI nunca conhece o fornecedor.
  */

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Dictionary, Locale } from "@bancada/core";
+import type { Dictionary, Locale } from "@futiq/core";
 
 interface NavItem {
   href: string;

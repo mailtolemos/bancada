@@ -1,5 +1,5 @@
 export const pt = {
-  appName: "Bancada",
+  appName: "FUTIQ",
   tagline: "Todo o futebol, ao segundo.",
   nav: {
     home: "Início",

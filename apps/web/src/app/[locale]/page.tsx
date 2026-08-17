@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getDictionary, isLocale, LIVE_STATUSES } from "@bancada/core";
+import { getDictionary, isLocale, LIVE_STATUSES } from "@futiq/core";
 import { getMatches, getNews, getStandings, isDemo } from "@/lib/data";
 import { LiveMatches } from "@/components/LiveMatches";
 import { NewsCard } from "@/components/NewsCard";

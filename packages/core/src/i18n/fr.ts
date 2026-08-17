@@ -1,7 +1,7 @@
 import type { Dictionary } from "./pt";
 
 export const fr: Dictionary = {
-  appName: "Bancada",
+  appName: "FUTIQ",
   tagline: "Tout le football, à la seconde près.",
   nav: {
     home: "Accueil",

@@ -10,12 +10,12 @@ import type {
   MatchEvent,
   MatchTeamStats,
   TeamLineup,
-} from "@bancada/core";
+} from "@futiq/core";
 
 const BASE = "https://v3.football.api-sports.io";
 
 export function isConfigured(): boolean {
-  return Boolean(process.env.API_FOOTBALL_KEY) && process.env.BANCADA_DEMO !== "1";
+  return Boolean(process.env.API_FOOTBALL_KEY) && process.env.FUTIQ_DEMO !== "1";
 }
 
 async function af<T>(path: string): Promise<T> {

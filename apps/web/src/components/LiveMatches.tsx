@@ -5,7 +5,7 @@
  * servidor e faz polling leve a /api/matches para refrescar resultados ao vivo.
  */
 import { useEffect, useState } from "react";
-import { LIVE_STATUSES, type Dictionary, type Locale, type Match } from "@bancada/core";
+import { LIVE_STATUSES, type Dictionary, type Locale, type Match } from "@futiq/core";
 import { MatchCard } from "./MatchCard";
 
 const POLL_MS = 30_000;

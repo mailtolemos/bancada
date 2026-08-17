@@ -1,4 +1,4 @@
-import type { Dictionary, MatchDetail, MatchEvent } from "@bancada/core";
+import type { Dictionary, MatchDetail, MatchEvent } from "@futiq/core";
 
 const ICONS: Record<MatchEvent["type"], string> = {
   GOAL: "⚽",

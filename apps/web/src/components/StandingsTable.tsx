@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { clubMetaForTeamName, type Dictionary, type Locale, type StandingRow } from "@bancada/core";
+import { clubMetaForTeamName, type Dictionary, type Locale, type StandingRow } from "@futiq/core";
 import { Crest } from "./Crest";
 
 /**

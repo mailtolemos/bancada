@@ -10,7 +10,7 @@ import type {
   Scorer,
   StandingRow,
   TeamRef,
-} from "@bancada/core";
+} from "@futiq/core";
 
 const T = (id: number, name: string, shortName: string, tla: string): TeamRef => ({
   id,

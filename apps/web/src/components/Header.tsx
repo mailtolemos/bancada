@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary, Locale } from "@bancada/core";
+import type { Dictionary, Locale } from "@futiq/core";
 import { ThemeToggle } from "./ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { NavLinks, MobileNav } from "./NavLinks";
@@ -9,13 +9,15 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
     <>
       <header className="sticky top-0 z-40 border-b border-neutral-200/70 bg-neutral-100/85 backdrop-blur-md dark:border-neutral-800/70 dark:bg-neutral-950/85">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
-          <Link href={`/${locale}`} className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-pitch-600 text-lg font-black text-white shadow-sm">
-              B
+          <Link href={`/${locale}`} className="flex items-center gap-2" aria-label={dict.appName}>
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-pitch-500 to-pitch-700 text-[11px] font-black tracking-tight text-white shadow-sm">
+              IQ
             </span>
-            <span className="text-lg font-extrabold tracking-tight">
-              {dict.appName}
-              <span className="ml-2 hidden text-xs font-semibold uppercase tracking-widest text-pitch-600 dark:text-pitch-400 sm:inline">
+            {/* Wordmark: FUT | IQ com separação visual */}
+            <span className="flex items-baseline text-xl font-black tracking-tight">
+              <span>FUT</span>
+              <span className="text-pitch-600 dark:text-pitch-400">IQ</span>
+              <span className="ml-2.5 hidden text-xs font-semibold uppercase tracking-widest text-neutral-400 sm:inline">
                 Liga Portugal
               </span>
             </span>

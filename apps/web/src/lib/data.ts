@@ -13,7 +13,7 @@ import {
   type MatchDetail,
   type Scorer,
   type StandingRow,
-} from "@bancada/core";
+} from "@futiq/core";
 import { cached } from "./cache";
 import * as fd from "./providers/footballData";
 import * as af from "./providers/apiFootball";

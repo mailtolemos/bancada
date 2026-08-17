@@ -10,7 +10,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@bancada/core':
+      '@futiq/core':
         specifier: workspace:*
         version: link:../../packages/core
       next:
