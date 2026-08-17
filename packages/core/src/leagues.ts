@@ -8,6 +8,7 @@ export const LEAGUES: League[] = [
   {
     id: "primeira-liga",
     fdCode: "PPL",
+    espnSlug: "por.1",
     afId: 94,
     name: "Liga Portugal",
     country: "Portugal",
@@ -17,6 +18,7 @@ export const LEAGUES: League[] = [
   {
     id: "premier-league",
     fdCode: "PL",
+    espnSlug: "eng.1",
     afId: 39,
     name: "Premier League",
     country: "Inglaterra",
@@ -26,6 +28,7 @@ export const LEAGUES: League[] = [
   {
     id: "la-liga",
     fdCode: "PD",
+    espnSlug: "esp.1",
     afId: 140,
     name: "La Liga",
     country: "Espanha",
@@ -35,6 +38,7 @@ export const LEAGUES: League[] = [
   {
     id: "serie-a",
     fdCode: "SA",
+    espnSlug: "ita.1",
     afId: 135,
     name: "Serie A",
     country: "Itália",
@@ -44,6 +48,7 @@ export const LEAGUES: League[] = [
   {
     id: "bundesliga",
     fdCode: "BL1",
+    espnSlug: "ger.1",
     afId: 78,
     name: "Bundesliga",
     country: "Alemanha",
@@ -53,6 +58,7 @@ export const LEAGUES: League[] = [
   {
     id: "ligue-1",
     fdCode: "FL1",
+    espnSlug: "fra.1",
     afId: 61,
     name: "Ligue 1",
     country: "França",
@@ -62,6 +68,7 @@ export const LEAGUES: League[] = [
   {
     id: "champions-league",
     fdCode: "CL",
+    espnSlug: "uefa.champions",
     afId: 2,
     name: "Champions League",
     country: "Europa",

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getDictionary, isLocale } from "@bancada/core";
-import { getScorers, isDemo } from "@/lib/data";
+import { getScorers, isScorersDemo } from "@/lib/data";
 import { Crest } from "@/components/Crest";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";
 
@@ -18,7 +18,7 @@ export default async function ScorersPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
-      {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
+      {isScorersDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <SectionHeader title={`⚽ ${dict.scorers.title}`} />
       <div className="card overflow-hidden">
         <table className="w-full text-sm">

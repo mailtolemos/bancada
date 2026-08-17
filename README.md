@@ -19,18 +19,15 @@ A app definitiva de futebol: **resultados ao vivo, classificações, 11 inicial,
 
 ```bash
 pnpm install
-cp apps/web/.env.example apps/web/.env.local   # e cola as tuas chaves
-pnpm dev                                        # http://localhost:3000
+pnpm dev        # http://localhost:3000 — dados reais imediatos, sem chaves
 ```
 
-Sem chaves, a app corre em **modo demonstração** (badge visível na UI).
+**Fornecedor por omissão: ESPN** (API pública, sem chave) — live scores, calendário, classificação, 11 inicial, eventos e estatísticas da Liga Portugal. Nota: é uma API não-oficial, sem SLA — perfeita para desenvolvimento e beta; antes do lançamento comercial, licencia um fornecedor oficial (a arquitetura já o permite sem tocar na UI).
 
-### Chave gratuita (dados reais da Liga Portugal)
+### Fornecedores opcionais (`apps/web/.env.local`)
 
-1. Regista-te em https://www.football-data.org/client/register (grátis)
-2. Cola o token em `apps/web/.env.local` → `FOOTBALL_DATA_API_KEY=...`
-
-Free tier: resultados, calendário, classificação e marcadores da Liga Portugal (10 pedidos/min — a cache interna garante que nunca passas o limite).
+- `FOOTBALL_DATA_API_KEY` — football-data.org (grátis, oficial): ativa os **melhores marcadores** reais; com `DATA_PROVIDER=football-data` passa a fornecedor principal.
+- `BANCADA_DEMO=1` — força modo demonstração (útil em desenvolvimento).
 
 ### Upgrade para dados premium (quando quiseres)
 

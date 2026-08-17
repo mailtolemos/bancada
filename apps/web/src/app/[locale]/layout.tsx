@@ -40,7 +40,7 @@ export default async function LocaleLayout({
       </main>
       <footer className="hidden border-t border-neutral-200/70 py-6 text-center text-xs text-neutral-500 dark:border-neutral-800/70 md:block">
         <p>
-          {dict.common.footer} · {dict.common.dataBy}:{" "}
+          {dict.common.footer} · {dict.common.dataBy}: ESPN ·{" "}
           <a href="https://www.football-data.org" className="underline" rel="noopener noreferrer" target="_blank">
             football-data.org
           </a>

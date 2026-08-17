@@ -1,11 +1,16 @@
+"use client";
+
+import { useState } from "react";
 import { clubMetaForTeamName, type TeamRef } from "@bancada/core";
 
 /**
- * Emblema do clube: usa o crest da API quando existe; caso contrário,
- * um círculo com as iniciais nas cores do clube (funciona em modo demo).
+ * Emblema do clube: usa o crest do fornecedor quando carrega; caso contrário
+ * (URL em falta, CDN bloqueado, erro), círculo com iniciais nas cores do clube.
  */
 export function Crest({ team, size = 28 }: { team: TeamRef; size?: number }) {
-  if (team.crest) {
+  const [failed, setFailed] = useState(false);
+
+  if (team.crest && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
@@ -14,16 +19,22 @@ export function Crest({ team, size = 28 }: { team: TeamRef; size?: number }) {
         width={size}
         height={size}
         loading="lazy"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        onLoad={(e) => {
+          if ((e.target as HTMLImageElement).naturalWidth === 0) setFailed(true);
+        }}
         className="shrink-0 object-contain"
         style={{ width: size, height: size }}
       />
     );
   }
+
   const meta = clubMetaForTeamName(team.name);
   return (
     <span
       aria-hidden
-      className="flex shrink-0 items-center justify-center rounded-full font-bold uppercase tracking-tight text-white ring-1 ring-black/10 dark:ring-white/10"
+      className="flex shrink-0 items-center justify-center rounded-full font-bold uppercase tracking-tight ring-1 ring-black/10 dark:ring-white/10"
       style={{
         width: size,
         height: size,

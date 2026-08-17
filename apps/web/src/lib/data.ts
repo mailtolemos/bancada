@@ -1,8 +1,13 @@
 /**
  * Fachada de dados — o único módulo que as páginas/rotas conhecem.
- * Decide entre modo demo e fornecedores reais, aplica cache com TTLs
- * pensados para os rate limits, e enriquece o detalhe de jogo quando o
- * fornecedor avançado está configurado.
+ *
+ * Fornecedores (por ordem):
+ *   1. ESPN (por omissão) — grátis, sem chave: live scores, 11 inicial,
+ *      eventos, estatísticas. Não-oficial → trocar por fornecedor licenciado
+ *      antes do lançamento comercial.
+ *   2. football-data.org — oficial; usado se DATA_PROVIDER=football-data.
+ *   3. API-Football — enriquecimento (ratings) quando há chave.
+ *   4. Demo — BANCADA_DEMO=1 ou todos os fornecedores em baixo.
  */
 import {
   DEFAULT_LEAGUE,
@@ -15,6 +20,7 @@ import {
   type StandingRow,
 } from "@bancada/core";
 import { cached } from "./cache";
+import * as espn from "./providers/espn";
 import * as fd from "./providers/footballData";
 import * as af from "./providers/apiFootball";
 import {
@@ -33,11 +39,16 @@ const TTL = {
 } as const;
 
 export function isDemo(): boolean {
-  return !fd.isConfigured();
+  return process.env.BANCADA_DEMO === "1";
+}
+
+function useFootballData(): boolean {
+  return process.env.DATA_PROVIDER === "football-data" && fd.isConfigured();
 }
 
 export function health(): ApiHealth[] {
   return [
+    { provider: "espn (default)", configured: !useFootballData(), demo: isDemo() },
     { provider: "football-data.org", configured: fd.isConfigured(), demo: isDemo() },
     { provider: "API-Football", configured: af.isConfigured(), demo: isDemo() },
   ];
@@ -55,11 +66,13 @@ function dateStr(offsetDays: number): string {
 export async function getMatches(leagueId?: string): Promise<Match[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoMatches();
-  // Chave inválida ou API em baixo → demo em vez de ecrã vazio.
   return cached(
     `matches:${lg.id}`,
     TTL.matchesLive,
-    () => fd.getMatches(lg, { dateFrom: dateStr(-7), dateTo: dateStr(10) }),
+    () =>
+      useFootballData()
+        ? fd.getMatches(lg, { dateFrom: dateStr(-7), dateTo: dateStr(10) })
+        : espn.getMatches(lg),
     TTL.matchesIdle * 6
   ).catch(() => demoMatches());
 }
@@ -73,12 +86,13 @@ export async function getMatchDetail(id: number, leagueId?: string): Promise<Mat
   const lg = league(leagueId);
   if (isDemo()) return demoMatchDetail(id);
 
-  const base = await cached(`match:${id}`, TTL.matchDetail, () => fd.getMatch(lg, id)).catch(
-    () => null
-  );
-  if (!base) return null;
+  const base = await cached(`match:${id}`, TTL.matchDetail, () =>
+    useFootballData() ? fd.getMatch(lg, id) : espn.getMatchDetail(lg, id)
+  ).catch(() => null);
+  if (!base) return demoMatchDetail(id);
 
-  if (af.isConfigured()) {
+  // Enriquecimento opcional (ratings de jogadores) via API-Football.
+  if (af.isConfigured() && base.richness !== "full") {
     const enrichment = await cached(
       `match:${id}:rich`,
       TTL.matchDetail,
@@ -88,9 +102,9 @@ export async function getMatchDetail(id: number, leagueId?: string): Promise<Mat
     if (enrichment) {
       return {
         ...base,
-        events: enrichment.events,
-        lineups: enrichment.lineups,
-        stats: enrichment.stats,
+        events: enrichment.events.length ? enrichment.events : base.events,
+        lineups: enrichment.lineups ?? base.lineups,
+        stats: enrichment.stats ?? base.stats,
         richness: "full",
       };
     }
@@ -101,14 +115,22 @@ export async function getMatchDetail(id: number, leagueId?: string): Promise<Mat
 export async function getStandings(leagueId?: string): Promise<StandingRow[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoStandings();
-  return cached(`standings:${lg.id}`, TTL.standings, () => fd.getStandings(lg)).catch(() =>
-    demoStandings()
-  );
+  return cached(`standings:${lg.id}`, TTL.standings, () =>
+    useFootballData() ? fd.getStandings(lg) : espn.getStandings(lg)
+  ).catch(() => demoStandings());
+}
+
+/**
+ * Marcadores: a ESPN não expõe lista de melhores marcadores de forma fiável,
+ * por isso usa football-data.org quando há chave; caso contrário, demo.
+ */
+export function isScorersDemo(): boolean {
+  return isDemo() || !fd.isConfigured();
 }
 
 export async function getScorers(leagueId?: string): Promise<Scorer[]> {
   const lg = league(leagueId);
-  if (isDemo()) return demoScorers();
+  if (isScorersDemo()) return demoScorers();
   return cached(`scorers:${lg.id}`, TTL.scorers, () => fd.getScorers(lg)).catch(() =>
     demoScorers()
   );

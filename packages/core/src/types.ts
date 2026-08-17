@@ -8,9 +8,11 @@ export type LeagueId = "primeira-liga" | "premier-league" | "la-liga" | "serie-a
 
 export interface League {
   id: LeagueId;
-  /** Código no fornecedor primário (football-data.org), ex: "PPL" */
+  /** Código no fornecedor football-data.org, ex: "PPL" */
   fdCode: string;
-  /** ID no fornecedor secundário (API-Football), ex: 94 */
+  /** Slug no fornecedor ESPN (por omissão, sem chave), ex: "por.1" */
+  espnSlug?: string;
+  /** ID no fornecedor API-Football, ex: 94 */
   afId?: number;
   name: string;
   country: string;
