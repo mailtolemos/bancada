@@ -1,0 +1,193 @@
+/**
+ * Bancada — modelo de domínio partilhado (web + mobile).
+ * Todos os fornecedores de dados (football-data.org, API-Football, …)
+ * são normalizados para estes tipos. A UI nunca conhece o fornecedor.
+ */
+
+export type LeagueId = "primeira-liga" | "premier-league" | "la-liga" | "serie-a" | "bundesliga" | "ligue-1" | "champions-league";
+
+export interface League {
+  id: LeagueId;
+  /** Código no fornecedor primário (football-data.org), ex: "PPL" */
+  fdCode: string;
+  /** ID no fornecedor secundário (API-Football), ex: 94 */
+  afId?: number;
+  name: string;
+  country: string;
+  countryFlag: string;
+  /** Ligas ativas aparecem na navegação; as restantes ficam prontas para ativar. */
+  active: boolean;
+}
+
+export type MatchStatus =
+  | "SCHEDULED"
+  | "TIMED"
+  | "IN_PLAY"
+  | "PAUSED"
+  | "FINISHED"
+  | "SUSPENDED"
+  | "POSTPONED"
+  | "CANCELLED"
+  | "AWARDED";
+
+export const LIVE_STATUSES: MatchStatus[] = ["IN_PLAY", "PAUSED"];
+
+export interface TeamRef {
+  id: number;
+  name: string;
+  shortName: string;
+  tla: string;
+  crest: string;
+}
+
+export interface Score {
+  home: number | null;
+  away: number | null;
+}
+
+export interface Match {
+  id: number;
+  leagueId: LeagueId;
+  utcDate: string;
+  status: MatchStatus;
+  /** Minuto de jogo, quando disponível ao vivo */
+  minute: number | null;
+  matchday: number | null;
+  home: TeamRef;
+  away: TeamRef;
+  score: Score;
+  halfTimeScore: Score;
+  venue?: string | null;
+  referee?: string | null;
+}
+
+export type MatchEventType =
+  | "GOAL"
+  | "OWN_GOAL"
+  | "PENALTY_GOAL"
+  | "PENALTY_MISSED"
+  | "YELLOW"
+  | "RED"
+  | "SUB"
+  | "VAR"
+  | "KICKOFF"
+  | "HALFTIME"
+  | "FULLTIME";
+
+export interface MatchEvent {
+  minute: number;
+  extraMinute?: number | null;
+  type: MatchEventType;
+  teamId: number | null;
+  player?: string | null;
+  assist?: string | null;
+  detail?: string | null;
+}
+
+export interface LineupPlayer {
+  id: number | null;
+  name: string;
+  number: number | null;
+  position: string | null;
+  /** Quadrícula "linha:coluna" para desenhar o campo (formato API-Football) */
+  grid?: string | null;
+  rating?: number | null;
+  captain?: boolean;
+}
+
+export interface TeamLineup {
+  teamId: number;
+  formation: string | null;
+  coach: string | null;
+  startXI: LineupPlayer[];
+  bench: LineupPlayer[];
+}
+
+export interface MatchDetail extends Match {
+  events: MatchEvent[];
+  lineups: TeamLineup[] | null;
+  /** Estatísticas de equipa (posse, remates, …) quando disponíveis */
+  stats: MatchTeamStats[] | null;
+  /** Origem do detalhe: nível de riqueza dos dados disponíveis */
+  richness: "basic" | "full";
+}
+
+export interface MatchTeamStats {
+  teamId: number;
+  possession: number | null;
+  shots: number | null;
+  shotsOnTarget: number | null;
+  corners: number | null;
+  fouls: number | null;
+  offsides: number | null;
+  xg?: number | null;
+}
+
+export interface StandingRow {
+  position: number;
+  team: TeamRef;
+  playedGames: number;
+  won: number;
+  draw: number;
+  lost: number;
+  points: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  /** ex: "WWDLW" (mais recente primeiro) */
+  form: string | null;
+}
+
+export interface Scorer {
+  player: { id: number; name: string; nationality?: string | null };
+  team: TeamRef;
+  goals: number;
+  assists: number | null;
+  penalties: number | null;
+  playedMatches: number | null;
+}
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  link: string;
+  source: string;
+  sourceId: string;
+  publishedAt: string;
+  snippet?: string | null;
+  image?: string | null;
+  /** IDs de clubes detetados no título/resumo */
+  clubs: string[];
+}
+
+export interface ClubMeta {
+  /** slug estável, ex: "benfica" */
+  slug: string;
+  /** nomes/alcunhas usados para detetar o clube em notícias */
+  aliases: string[];
+  colors: { primary: string; secondary: string };
+  officialSite?: string;
+  twitter?: string;
+  reddit?: string;
+  forum?: string;
+  youtube?: string;
+  instagram?: string;
+  city?: string;
+  stadium?: string;
+}
+
+export interface NewsSource {
+  id: string;
+  name: string;
+  url: string;
+  feedUrl: string;
+  lang: string;
+  /** fontes de confiança editorial (aparecem por omissão) */
+  trusted: boolean;
+}
+
+export interface ApiHealth {
+  provider: string;
+  configured: boolean;
+  demo: boolean;
+}
