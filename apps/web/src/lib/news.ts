@@ -5,7 +5,7 @@
  * deteção automática de clubes para filtragem.
  */
 import Parser from "rss-parser";
-import { NEWS_SOURCES, detectClubs, type NewsItem } from "@bancada/core";
+import { NEWS_SOURCES, detectClubs, isFootballRelevant, type NewsItem } from "@bancada/core";
 import { cached } from "./cache";
 import { demoNews } from "./demo";
 
@@ -30,7 +30,7 @@ async function fetchFeed(sourceId: string): Promise<NewsItem[]> {
     const feed = await parser.parseURL(source.feedUrl);
     return (feed.items ?? [])
       .filter((item) => item.title && item.link)
-      .slice(0, 40)
+      .slice(0, 60)
       .map((item) => {
         const title = clean(item.title!);
         const snippet = clean(item.contentSnippet ?? item.summary ?? "").slice(0, 240);
@@ -44,8 +44,11 @@ async function fetchFeed(sourceId: string): Promise<NewsItem[]> {
           snippet: snippet || null,
           image: extractImage(item),
           clubs: detectClubs(`${title} ${snippet}`),
+          kind: "news" as const,
         } satisfies NewsItem;
-      });
+      })
+      // Só futebol: fora audiências de TV, andebol, futsal, ciclismo, etc.
+      .filter((item) => isFootballRelevant(`${item.title} ${item.snippet ?? ""}`));
   } catch {
     // Fonte indisponível — falha silenciosa e isolada.
     return [];

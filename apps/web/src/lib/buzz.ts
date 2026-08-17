@@ -10,7 +10,14 @@
  * Tudo com falha isolada por fonte e cache generosa.
  */
 import Parser from "rss-parser";
-import { CLUBS, detectClubs, getClub, type NewsItem } from "@bancada/core";
+import {
+  CLUBS,
+  detectClubs,
+  getClub,
+  isBlockedTopic,
+  isFootballRelevant,
+  type NewsItem,
+} from "@bancada/core";
 import { cached } from "./cache";
 
 // Google News aceita UA estilo curl; o Reddit exige um UA identificado.
@@ -68,7 +75,9 @@ async function fetchGoogleNews(query: string, idPrefix: string): Promise<NewsIte
           clubs: detectClubs(title),
           kind: "rumor" as const,
         };
-      });
+      })
+      // Só futebol (fora "Casa Benfica", modalidades, TV, …)
+      .filter((n) => isFootballRelevant(n.title));
   } catch {
     return [];
   }
@@ -132,7 +141,9 @@ async function fetchReddit(sub: string): Promise<NewsItem[]> {
         image: null,
         clubs: detectClubs(i.title!),
         kind: "social" as const,
-      }));
+      }))
+      // Nos posts de comunidade só cortamos temas claramente fora (modalidades, TV).
+      .filter((n) => !isBlockedTopic(n.title));
   } catch {
     return [];
   }
