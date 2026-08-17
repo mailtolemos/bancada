@@ -15,6 +15,7 @@ import type {
   MatchEvent,
   MatchStatus,
   MatchTeamStats,
+  Scorer,
   StandingRow,
   TeamLineup,
   TeamRef,
@@ -22,6 +23,13 @@ import type {
 
 const BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer";
 const BASE_V2 = "https://site.api.espn.com/apis/v2/sports/soccer";
+const BASE_CORE = "https://sports.core.api.espn.com/v2/sports/soccer/leagues";
+
+/** Época europeia: julho–dezembro pertencem à época iniciada nesse ano. */
+function seasonYear(): number {
+  const now = new Date();
+  return now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+}
 
 async function espn<T>(url: string): Promise<T> {
   const res = await fetch(url, {
@@ -87,6 +95,8 @@ interface EspnCompetition {
     homeAway: "home" | "away";
     score?: string | { displayValue?: string };
     team: EspnTeam;
+    /** Golos por parte — [1ª parte, 2ª parte] — presente no summary. */
+    linescores?: Array<{ displayValue?: string }>;
   }>;
 }
 
@@ -139,10 +149,13 @@ export async function getMatches(league: League): Promise<Match[]> {
 }
 
 export async function getStandings(league: League): Promise<StandingRow[]> {
-  const data = await espn<{
-    children?: Array<{ standings?: { entries?: EspnStandingEntry[] } }>;
-    standings?: { entries?: EspnStandingEntry[] };
-  }>(`${BASE_V2}/${slug(league)}/standings`);
+  const [data, form] = await Promise.all([
+    espn<{
+      children?: Array<{ standings?: { entries?: EspnStandingEntry[] } }>;
+      standings?: { entries?: EspnStandingEntry[] };
+    }>(`${BASE_V2}/${slug(league)}/standings`),
+    seasonForm(league).catch(() => new Map<number, string>()),
+  ]);
   const entries = data.children?.[0]?.standings?.entries ?? data.standings?.entries ?? [];
   return entries
     .map((entry) => {
@@ -159,10 +172,116 @@ export async function getStandings(league: League): Promise<StandingRow[]> {
         goalsFor: stat("pointsFor"),
         goalsAgainst: stat("pointsAgainst"),
         goalDifference: stat("pointDifferential"),
-        form: null,
+        form: form.get(Number(entry.team.id)) ?? null,
       };
     })
     .sort((a, b) => a.position - b.position);
+}
+
+/** Forma real (últimos 5 resultados, mais recente primeiro) a partir da época. */
+async function seasonForm(league: League): Promise<Map<number, string>> {
+  const start = `${seasonYear()}0701`;
+  const today = ymd(0);
+  const data = await espn<{
+    events: Array<{ id: string; date: string; status: EspnStatus; competitions: EspnCompetition[] }>;
+  }>(`${BASE}/${slug(league)}/scoreboard?dates=${start}-${today}`);
+
+  const results = (data.events ?? [])
+    .map((e) => toMatch(e, league.id))
+    .filter((m): m is Match => m !== null && m.status === "FINISHED")
+    .sort((a, b) => b.utcDate.localeCompare(a.utcDate)); // mais recente primeiro
+
+  const form = new Map<number, string>();
+  for (const m of results) {
+    if (m.score.home == null || m.score.away == null) continue;
+    const homeRes = m.score.home > m.score.away ? "W" : m.score.home < m.score.away ? "L" : "D";
+    const awayRes = homeRes === "W" ? "L" : homeRes === "L" ? "W" : "D";
+    for (const [teamId, res] of [
+      [m.home.id, homeRes],
+      [m.away.id, awayRes],
+    ] as const) {
+      const cur = form.get(teamId) ?? "";
+      if (cur.length < 5) form.set(teamId, cur + res);
+    }
+  }
+  return form;
+}
+
+/* ── Melhores marcadores (API core: leaders + resolução de refs) ── */
+
+interface CoreLeaderCategory {
+  name: string;
+  leaders?: Array<{
+    value: number;
+    athlete?: { $ref?: string };
+    team?: { $ref?: string };
+  }>;
+}
+
+export async function getScorers(league: League): Promise<Scorer[]> {
+  const year = seasonYear();
+  const data = await espn<{ categories?: CoreLeaderCategory[] }>(
+    `${BASE_CORE}/${slug(league)}/seasons/${year}/types/1/leaders?lang=en&region=us`
+  );
+  const cat = (name: string) => data.categories?.find((c) => c.name === name)?.leaders ?? [];
+  const goals = cat("goals").slice(0, 15);
+  if (!goals.length) throw new Error("ESPN: sem líderes de golos");
+
+  // Mapa de assistências por atleta (para enriquecer a lista de marcadores).
+  const assistsByRef = new Map<string, number>();
+  for (const l of cat("assists")) {
+    if (l.athlete?.$ref) assistsByRef.set(refId(l.athlete.$ref), l.value);
+  }
+
+  // Resolve atletas e equipas em paralelo, com deduplicação de equipas.
+  const teamCache = new Map<string, Promise<TeamRef>>();
+  const resolveTeam = (ref: string): Promise<TeamRef> => {
+    const id = refId(ref);
+    if (!teamCache.has(id)) {
+      teamCache.set(
+        id,
+        espn<EspnTeam & { logos?: Array<{ href: string }> }>(secure(ref)).then(team)
+      );
+    }
+    return teamCache.get(id)!;
+  };
+
+  const scorers = await Promise.all(
+    goals.map(async (l): Promise<Scorer | null> => {
+      if (!l.athlete?.$ref) return null;
+      try {
+        const [athlete, teamRef] = await Promise.all([
+          espn<{ id?: string; displayName?: string; citizenship?: string }>(secure(l.athlete.$ref)),
+          l.team?.$ref
+            ? resolveTeam(l.team.$ref)
+            : Promise.resolve<TeamRef>({ id: 0, name: "—", shortName: "—", tla: "—", crest: "" }),
+        ]);
+        return {
+          player: {
+            id: Number(athlete.id ?? refId(l.athlete.$ref!)),
+            name: athlete.displayName ?? "—",
+            nationality: athlete.citizenship ?? null,
+          },
+          team: teamRef,
+          goals: l.value,
+          assists: assistsByRef.get(refId(l.athlete.$ref!)) ?? null,
+          penalties: null,
+          playedMatches: null,
+        };
+      } catch {
+        return null;
+      }
+    })
+  );
+  return scorers.filter((s): s is Scorer => s !== null);
+}
+
+function refId(ref: string): string {
+  return ref.split("?")[0]!.split("/").pop() ?? ref;
+}
+
+function secure(ref: string): string {
+  return ref.replace(/^http:/, "https:");
 }
 
 interface EspnStandingEntry {
@@ -191,8 +310,17 @@ export async function getMatchDetail(league: League, id: number): Promise<MatchD
   const lineups = toLineups(data.rosters ?? [], base);
   const stats = toStats(data.boxscore?.teams ?? []);
 
+  // Resultado ao intervalo a partir dos linescores (golos da 1ª parte).
+  const half = (side: "home" | "away"): number | null => {
+    const raw = header.competitors.find((c) => c.homeAway === side)?.linescores?.[0]?.displayValue;
+    const n = Number(raw);
+    return raw != null && Number.isFinite(n) ? n : null;
+  };
+  const played = base.score.home != null;
+
   return {
     ...base,
+    halfTimeScore: played ? { home: half("home"), away: half("away") } : base.halfTimeScore,
     venue: data.gameInfo?.venue?.fullName ?? base.venue,
     referee: data.gameInfo?.officials?.[0]?.displayName ?? null,
     events,

@@ -120,20 +120,23 @@ export async function getStandings(leagueId?: string): Promise<StandingRow[]> {
   ).catch(() => demoStandings());
 }
 
-/**
- * Marcadores: a ESPN não expõe lista de melhores marcadores de forma fiável,
- * por isso usa football-data.org quando há chave; caso contrário, demo.
- */
+/** Marcadores reais: ESPN leaders; football-data como alternativa; demo em último caso. */
 export function isScorersDemo(): boolean {
-  return isDemo() || !fd.isConfigured();
+  return isDemo();
 }
 
 export async function getScorers(leagueId?: string): Promise<Scorer[]> {
   const lg = league(leagueId);
-  if (isScorersDemo()) return demoScorers();
-  return cached(`scorers:${lg.id}`, TTL.scorers, () => fd.getScorers(lg)).catch(() =>
-    demoScorers()
-  );
+  if (isDemo()) return demoScorers();
+  return cached(`scorers:${lg.id}`, TTL.scorers, async () => {
+    if (useFootballData()) return fd.getScorers(lg);
+    try {
+      return await espn.getScorers(lg);
+    } catch {
+      if (fd.isConfigured()) return fd.getScorers(lg);
+      throw new Error("sem fornecedor de marcadores");
+    }
+  }).catch(() => demoScorers());
 }
 
 export { getNews } from "./news";
