@@ -88,6 +88,9 @@ export const es: Dictionary = {
     city: "Ciudad",
     position: "Posición en la liga",
     noNews: "No hay noticias recientes de este club.",
+    rumors: "Mercado y rumores",
+    rumorsEmpty: "No hay rumores de mercado en este momento.",
+    communityEmpty: "No hay conversaciones recientes de la comunidad.",
   },
   news: {
     title: "Noticias",
@@ -97,6 +100,9 @@ export const es: Dictionary = {
     readMore: "Leer en el sitio",
     updated: "Actualizado",
     empty: "No hay noticias disponibles. Inténtalo de nuevo en unos momentos.",
+    tabNews: "Noticias",
+    tabRumors: "Mercado y rumores",
+    tabCommunity: "Comunidad",
   },
   common: {
     loading: "Cargando…",

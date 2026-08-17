@@ -86,6 +86,9 @@ export const pt = {
     city: "Cidade",
     position: "Posição na liga",
     noNews: "Sem notícias recentes deste clube.",
+    rumors: "Mercado & Rumores",
+    rumorsEmpty: "Sem rumores de mercado neste momento.",
+    communityEmpty: "Sem conversas recentes da comunidade.",
   },
   news: {
     title: "Notícias",
@@ -95,6 +98,9 @@ export const pt = {
     readMore: "Ler no site",
     updated: "Atualizado",
     empty: "Sem notícias disponíveis. Tenta novamente dentro de momentos.",
+    tabNews: "Notícias",
+    tabRumors: "Mercado & Rumores",
+    tabCommunity: "Comunidade",
   },
   common: {
     loading: "A carregar…",

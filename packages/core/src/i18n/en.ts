@@ -88,6 +88,9 @@ export const en: Dictionary = {
     city: "City",
     position: "League position",
     noNews: "No recent news for this club.",
+    rumors: "Transfer talk & rumours",
+    rumorsEmpty: "No transfer rumours right now.",
+    communityEmpty: "No recent community posts.",
   },
   news: {
     title: "News",
@@ -97,6 +100,9 @@ export const en: Dictionary = {
     readMore: "Read on site",
     updated: "Updated",
     empty: "No news available. Try again in a moment.",
+    tabNews: "News",
+    tabRumors: "Transfer talk",
+    tabCommunity: "Community",
   },
   common: {
     loading: "Loading…",

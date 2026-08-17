@@ -88,6 +88,9 @@ export const fr: Dictionary = {
     city: "Ville",
     position: "Position en championnat",
     noNews: "Pas d'actualités récentes pour ce club.",
+    rumors: "Mercato & rumeurs",
+    rumorsEmpty: "Pas de rumeurs de mercato pour le moment.",
+    communityEmpty: "Pas de discussions récentes de la communauté.",
   },
   news: {
     title: "Actualités",
@@ -97,6 +100,9 @@ export const fr: Dictionary = {
     readMore: "Lire sur le site",
     updated: "Mis à jour",
     empty: "Aucune actualité disponible. Réessayez dans un instant.",
+    tabNews: "Actualités",
+    tabRumors: "Mercato",
+    tabCommunity: "Communauté",
   },
   common: {
     loading: "Chargement…",

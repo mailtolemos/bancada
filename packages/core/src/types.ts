@@ -160,6 +160,8 @@ export interface NewsItem {
   image?: string | null;
   /** IDs de clubes detetados no título/resumo */
   clubs: string[];
+  /** Tipo de conteúdo: notícia editorial, rumor de mercado ou post de comunidade. */
+  kind?: "news" | "rumor" | "social";
 }
 
 export interface ClubMeta {
@@ -171,6 +173,8 @@ export interface ClubMeta {
   officialSite?: string;
   twitter?: string;
   reddit?: string;
+  /** subreddit (sem o r/) para agregar posts da comunidade */
+  redditSub?: string;
   forum?: string;
   youtube?: string;
   instagram?: string;

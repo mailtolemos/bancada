@@ -21,7 +21,15 @@ export function NewsCard({
       {item.image && <NewsImage src={item.image} />}
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px]">
-          <span className="chip bg-pitch-600/10 text-pitch-700 dark:bg-pitch-500/15 dark:text-pitch-300">
+          <span
+            className={`chip ${
+              item.kind === "rumor"
+                ? "bg-orange-500/10 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300"
+                : item.kind === "social"
+                  ? "bg-violet-500/10 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300"
+                  : "bg-pitch-600/10 text-pitch-700 dark:bg-pitch-500/15 dark:text-pitch-300"
+            }`}
+          >
             {item.source}
           </span>
           <span className="text-neutral-500">{timeAgo(item.publishedAt, locale)}</span>

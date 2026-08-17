@@ -6,6 +6,7 @@ import {
   isLocale,
 } from "@bancada/core";
 import { getMatches, getNews, getStandings, isDemo } from "@/lib/data";
+import { getCommunity, getRumors } from "@/lib/buzz";
 import { Crest } from "@/components/Crest";
 import { LiveMatches } from "@/components/LiveMatches";
 import { NewsCard } from "@/components/NewsCard";
@@ -23,10 +24,12 @@ export default async function ClubPage({
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
 
-  const [standings, matches, news] = await Promise.all([
+  const [standings, matches, news, rumors, community] = await Promise.all([
     getStandings().catch(() => []),
     getMatches().catch(() => []),
-    getNews({ club: slug, limit: 10 }).catch(() => []),
+    getNews({ club: slug, limit: 8 }).catch(() => []),
+    getRumors({ club: slug, limit: 6 }).catch(() => []),
+    getCommunity({ club: slug, limit: 6 }).catch(() => []),
   ]);
 
   // Resolve a equipa da época atual cujo metadata corresponde ao slug.
@@ -132,20 +135,52 @@ export default async function ClubPage({
           </section>
         </div>
 
-        <section>
-          <SectionHeader title={dict.clubs.news} />
-          {news.length ? (
-            <div className="grid gap-2.5">
-              {news.map((item) => (
-                <NewsCard key={item.id} item={item} locale={locale} dict={dict} />
-              ))}
-            </div>
-          ) : (
-            <p className="card px-4 py-6 text-center text-sm text-neutral-500">
-              {dict.clubs.noNews}
-            </p>
-          )}
-        </section>
+        <div className="space-y-8">
+          <section>
+            <SectionHeader title={`🔥 ${dict.clubs.rumors}`} />
+            {rumors.length ? (
+              <div className="grid gap-2.5">
+                {rumors.map((item) => (
+                  <NewsCard key={item.id} item={item} locale={locale} dict={dict} />
+                ))}
+              </div>
+            ) : (
+              <p className="card px-4 py-6 text-center text-sm text-neutral-500">
+                {dict.clubs.rumorsEmpty}
+              </p>
+            )}
+          </section>
+
+          <section>
+            <SectionHeader title={dict.clubs.news} />
+            {news.length ? (
+              <div className="grid gap-2.5">
+                {news.map((item) => (
+                  <NewsCard key={item.id} item={item} locale={locale} dict={dict} />
+                ))}
+              </div>
+            ) : (
+              <p className="card px-4 py-6 text-center text-sm text-neutral-500">
+                {dict.clubs.noNews}
+              </p>
+            )}
+          </section>
+
+          <section>
+            <SectionHeader title={`💬 ${dict.clubs.community}`} />
+            {community.length ? (
+              <div className="grid gap-2.5">
+                {community.map((item) => (
+                  <NewsCard key={item.id} item={item} locale={locale} dict={dict} />
+                ))}
+              </div>
+            ) : (
+              <p className="card px-4 py-6 text-center text-sm text-neutral-500">
+                {dict.clubs.communityEmpty}
+              </p>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );
