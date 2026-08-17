@@ -1,15 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import "@fontsource-variable/inter";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: {
-    default: "FUTIQ — Todo o futebol, ao segundo",
-    template: "%s · FUTIQ",
-  },
+  title: "bancada. — Todo o futebol. Num só lugar.",
   description:
     "Resultados ao vivo, classificações, onze inicial, golos e notícias de múltiplas fontes fiáveis. Liga Portugal primeiro, o mundo a seguir.",
-  applicationName: "FUTIQ",
+  applicationName: "bancada.",
 };
 
 export const viewport: Viewport = {

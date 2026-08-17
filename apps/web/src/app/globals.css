@@ -4,6 +4,7 @@
 
 :root {
   color-scheme: light;
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 .dark {

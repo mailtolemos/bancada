@@ -1,4 +1,4 @@
-# ⚽ FUTIQ — Todo o futebol, ao segundo
+# ⚽ bancada. — Todo o futebol, ao segundo
 
 A app definitiva de futebol: **resultados ao vivo, classificações, 11 inicial, eventos ao minuto, notas de jogadores e notícias agregadas de múltiplas fontes fiáveis**. Liga Portugal primeiro — arquitetura pronta para o mundo.
 
@@ -39,7 +39,7 @@ Free tier: resultados, calendário, classificação e marcadores da Liga Portuga
 ## Arquitetura (pensada para escalar)
 
 ```
-futiq/
+bancada/
 ├── packages/core          # ❤️ partilhado web + mobile (futuro Expo)
 │   └── src/
 │       ├── types.ts       # modelo de domínio (Match, StandingRow, NewsItem, …)
@@ -69,7 +69,7 @@ futiq/
 ## Roadmap sugerido
 
 1. **Contas + Premium** — Auth (Clerk/Auth.js) + Stripe; gate de funcionalidades premium (notificações de golos, estatísticas avançadas, zero anúncios). A UI já mostra o teaser no rodapé.
-2. **App nativa iOS/Android** — criar `apps/mobile` com Expo; reutiliza `@futiq/core` (tipos, i18n, ligas, clubes) e os endpoints `/api/*` já existentes como backend.
+2. **App nativa iOS/Android** — criar `apps/mobile` com Expo; reutiliza `@bancada/core` (tipos, i18n, ligas, clubes) e os endpoints `/api/*` já existentes como backend.
 3. **Notificações push de golos** — worker que compara snapshots de `/api/matches` e dispara via Expo Push/FCM.
 4. **Mais ligas** — ativar em `leagues.ts`; o free tier da football-data.org já cobre PL, La Liga, Serie A, Bundesliga, Ligue 1, Champions.
 5. **Escala** — trocar `lib/cache.ts` por Upstash Redis (mesma interface), ISR/edge para classificações.

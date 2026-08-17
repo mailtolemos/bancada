@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { LOCALES, LOCALE_LABELS, type Locale } from "@futiq/core";
+import { LOCALES, LOCALE_LABELS, type Locale } from "@bancada/core";
 
 export function LocaleSwitcher({ locale, label }: { locale: Locale; label: string }) {
   const pathname = usePathname();

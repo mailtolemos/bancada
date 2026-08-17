@@ -4,7 +4,7 @@
  * Vista de jogo com atualização automática (polling leve ao endpoint interno).
  */
 import { useEffect, useState } from "react";
-import { LIVE_STATUSES, type Dictionary, type Locale, type MatchDetail } from "@futiq/core";
+import { LIVE_STATUSES, type Dictionary, type Locale, type MatchDetail } from "@bancada/core";
 import { formatDate, formatTime } from "@/lib/format";
 import { Crest } from "./Crest";
 import { StatusBadge } from "./MatchCard";

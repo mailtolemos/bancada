@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LIVE_STATUSES, type Dictionary, type Locale, type Match } from "@futiq/core";
+import { LIVE_STATUSES, type Dictionary, type Locale, type Match } from "@bancada/core";
 import { formatTime, relativeDay } from "@/lib/format";
 import { Crest } from "./Crest";
 

@@ -1,8 +1,8 @@
 import type { Dictionary } from "./pt";
 
 export const es: Dictionary = {
-  appName: "FUTIQ",
-  tagline: "Todo el fútbol, al segundo.",
+  appName: "bancada.",
+  tagline: "Todo el fútbol. En un solo lugar.",
   nav: {
     home: "Inicio",
     matches: "Partidos",

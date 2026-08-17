@@ -1,4 +1,4 @@
-import { clubMetaForTeamName, type Dictionary, type MatchDetail, type TeamLineup } from "@futiq/core";
+import { clubMetaForTeamName, type Dictionary, type MatchDetail, type TeamLineup } from "@bancada/core";
 
 /**
  * Campo de futebol com o 11 inicial posicionado pela grelha "linha:coluna".

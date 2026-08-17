@@ -1,4 +1,4 @@
-import type { Dictionary } from "@futiq/core";
+import type { Dictionary } from "@bancada/core";
 
 const localeMap: Record<string, string> = {
   pt: "pt-PT",

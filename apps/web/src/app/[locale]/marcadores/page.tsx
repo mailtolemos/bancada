@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getDictionary, isLocale } from "@futiq/core";
+import { getDictionary, isLocale } from "@bancada/core";
 import { getScorers, isDemo } from "@/lib/data";
 import { Crest } from "@/components/Crest";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";

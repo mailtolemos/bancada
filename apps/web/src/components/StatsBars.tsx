@@ -1,4 +1,4 @@
-import type { Dictionary, MatchDetail } from "@futiq/core";
+import type { Dictionary, MatchDetail } from "@bancada/core";
 
 export function StatsBars({ match, dict }: { match: MatchDetail; dict: Dictionary }) {
   if (!match.stats || match.stats.length < 2) return null;

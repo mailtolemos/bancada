@@ -12,7 +12,7 @@ import type {
   Scorer,
   StandingRow,
   TeamRef,
-} from "@futiq/core";
+} from "@bancada/core";
 
 const BASE = "https://api.football-data.org/v4";
 
@@ -21,7 +21,7 @@ function apiKey(): string | undefined {
 }
 
 export function isConfigured(): boolean {
-  return Boolean(apiKey()) && process.env.FUTIQ_DEMO !== "1";
+  return Boolean(apiKey()) && process.env.BANCADA_DEMO !== "1";
 }
 
 async function fd<T>(path: string): Promise<T> {

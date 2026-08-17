@@ -1,4 +1,4 @@
-import { clubMetaForTeamName, type TeamRef } from "@futiq/core";
+import { clubMetaForTeamName, type TeamRef } from "@bancada/core";
 
 /**
  * Emblema do clube: usa o crest da API quando existe; caso contrário,

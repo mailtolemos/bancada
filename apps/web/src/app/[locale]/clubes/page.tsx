@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { clubMetaForTeamName, getDictionary, isLocale } from "@futiq/core";
+import { clubMetaForTeamName, getDictionary, isLocale } from "@bancada/core";
 import { getStandings, isDemo } from "@/lib/data";
 import { Crest } from "@/components/Crest";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";

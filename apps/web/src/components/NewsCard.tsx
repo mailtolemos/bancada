@@ -1,4 +1,4 @@
-import type { Dictionary, Locale, NewsItem } from "@futiq/core";
+import type { Dictionary, Locale, NewsItem } from "@bancada/core";
 import { timeAgo } from "@/lib/format";
 import { NewsImage } from "./NewsImage";
 

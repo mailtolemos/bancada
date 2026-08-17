@@ -1,9 +1,25 @@
 import { notFound } from "next/navigation";
-import { getDictionary, isLocale } from "@futiq/core";
+import { getDictionary, isLocale } from "@bancada/core";
 import { Header } from "@/components/Header";
 
 // Live scores: render dinâmico sempre — nada de HTML congelado no build.
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const dict = getDictionary(locale);
+  return {
+    title: {
+      default: `${dict.appName} — ${dict.tagline}`,
+      template: `%s · ${dict.appName}`,
+    },
+    description: dict.tagline,
+  };
+}
 
 export default async function LocaleLayout({
   children,

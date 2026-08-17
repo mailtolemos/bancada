@@ -1,13 +1,13 @@
 {
-  "name": "futiq",
+  "name": "bancada",
   "private": true,
   "version": "0.1.0",
-  "description": "FUTIQ — a app definitiva de futebol. Live scores, notícias multi-fonte e comunidade. Liga Portugal primeiro, o mundo a seguir.",
+  "description": "bancada. — a app definitiva de futebol. Live scores, notícias multi-fonte e comunidade. Liga Portugal primeiro, o mundo a seguir.",
   "scripts": {
-    "dev": "pnpm --filter @futiq/web dev",
-    "build": "pnpm --filter @futiq/web build",
-    "start": "pnpm --filter @futiq/web start",
-    "lint": "pnpm --filter @futiq/web lint"
+    "dev": "pnpm --filter @bancada/web dev",
+    "build": "pnpm --filter @bancada/web build",
+    "start": "pnpm --filter @bancada/web start",
+    "lint": "pnpm --filter @bancada/web lint"
   },
   "packageManager": "pnpm@10.28.0"
 }
