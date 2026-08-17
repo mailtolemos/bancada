@@ -55,13 +55,13 @@ function dateStr(offsetDays: number): string {
 export async function getMatches(leagueId?: string): Promise<Match[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoMatches();
-  const matches = await cached(
+  // Chave inválida ou API em baixo → demo em vez de ecrã vazio.
+  return cached(
     `matches:${lg.id}`,
     TTL.matchesLive,
     () => fd.getMatches(lg, { dateFrom: dateStr(-7), dateTo: dateStr(10) }),
     TTL.matchesIdle * 6
-  );
-  return matches;
+  ).catch(() => demoMatches());
 }
 
 export async function getLiveMatches(leagueId?: string): Promise<Match[]> {
@@ -101,13 +101,17 @@ export async function getMatchDetail(id: number, leagueId?: string): Promise<Mat
 export async function getStandings(leagueId?: string): Promise<StandingRow[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoStandings();
-  return cached(`standings:${lg.id}`, TTL.standings, () => fd.getStandings(lg));
+  return cached(`standings:${lg.id}`, TTL.standings, () => fd.getStandings(lg)).catch(() =>
+    demoStandings()
+  );
 }
 
 export async function getScorers(leagueId?: string): Promise<Scorer[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoScorers();
-  return cached(`scorers:${lg.id}`, TTL.scorers, () => fd.getScorers(lg));
+  return cached(`scorers:${lg.id}`, TTL.scorers, () => fd.getScorers(lg)).catch(() =>
+    demoScorers()
+  );
 }
 
 export { getNews } from "./news";
