@@ -82,6 +82,15 @@ export async function getLiveMatches(leagueId?: string): Promise<Match[]> {
   return matches.filter((m) => LIVE_STATUSES.includes(m.status));
 }
 
+/** Todos os jogos futuros da época (para exportação de calendário). */
+export async function getSeasonFixtures(leagueId?: string): Promise<Match[]> {
+  const lg = league(leagueId);
+  if (isDemo()) return demoMatches().filter((m) => m.status === "TIMED");
+  return cached(`fixtures:${lg.id}`, 6 * 3600 * 1000, () => espn.getSeasonFixtures(lg)).catch(
+    () => []
+  );
+}
+
 export async function getMatchDetail(id: number, leagueId?: string): Promise<MatchDetail | null> {
   const lg = league(leagueId);
   if (isDemo()) return demoMatchDetail(id);

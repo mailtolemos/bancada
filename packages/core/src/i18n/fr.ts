@@ -128,5 +128,6 @@ export const fr: Dictionary = {
     dataBy: "Données des matchs",
     liveUpdates: "Actualisation automatique",
     league: "Ligue",
+    allLeagues: "Toutes les ligues",
   },
 };

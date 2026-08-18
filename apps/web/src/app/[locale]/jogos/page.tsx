@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { CalendarDays, History, Radio } from "lucide-react";
-import { DEFAULT_LEAGUE, getDictionary, isLocale } from "@bancada/core";
+import { CalendarDays, CalendarPlus, History, Radio } from "lucide-react";
+import { DEFAULT_LEAGUE, getDictionary, getLeague, isLocale } from "@bancada/core";
 import { getMatches, isDemo } from "@/lib/data";
 import { LiveMatches } from "@/components/LiveMatches";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
@@ -26,6 +26,24 @@ export default async function MatchesPage({
     <div className="space-y-8">
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <LeagueSwitcher basePath={`/${locale}/jogos`} current={leagueId} />
+
+      {/* Exportar calendário: liga atual ou todas */}
+      <div className="-mt-4 flex flex-wrap gap-1.5">
+        <a
+          href={`/api/calendar?league=${leagueId}`}
+          className="chip bg-neutral-200/80 text-neutral-700 transition-colors hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+        >
+          <CalendarPlus size={13} aria-hidden /> {dict.clubs.addToCalendar} —{" "}
+          {getLeague(leagueId)?.name ?? leagueId}
+        </a>
+        <a
+          href="/api/calendar?all=1"
+          className="chip bg-neutral-200/80 text-neutral-700 transition-colors hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+        >
+          <CalendarPlus size={13} aria-hidden /> {dict.common.allLeagues}
+        </a>
+      </div>
+
       <section>
         <SectionHeader title={dict.home.liveNow} icon={<Radio size={15} className="text-red-500" />} />
         <LiveMatches

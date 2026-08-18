@@ -126,6 +126,7 @@ export const pt = {
     dataBy: "Dados de jogos",
     liveUpdates: "Atualização automática",
     league: "Liga",
+    allLeagues: "Todas as ligas",
   },
 };
 

@@ -207,6 +207,38 @@ async function seasonForm(league: League): Promise<Map<number, string>> {
   return form;
 }
 
+/**
+ * Calendário da época completa (jogos futuros). A ESPN limita cada pedido a
+ * ~100 eventos, por isso encadeamos janelas de 90 dias até ao fim da época.
+ */
+export async function getSeasonFixtures(league: League): Promise<Match[]> {
+  const windows: Array<[string, string]> = [
+    [ymd(0), ymd(90)],
+    [ymd(91), ymd(181)],
+    [ymd(182), ymd(320)],
+  ];
+  const chunks = await Promise.all(
+    windows.map(([from, to]) =>
+      espn<{
+        events: Array<{ id: string; date: string; status: EspnStatus; competitions: EspnCompetition[] }>;
+      }>(`${BASE}/${slug(league)}/scoreboard?dates=${from}-${to}`)
+        .then((d) => d.events ?? [])
+        .catch(() => [])
+    )
+  );
+  const seen = new Set<string>();
+  const matches: Match[] = [];
+  for (const e of chunks.flat()) {
+    if (seen.has(e.id)) continue;
+    seen.add(e.id);
+    const m = toMatch(e, league.id);
+    if (m && (m.status === "TIMED" || m.status === "SCHEDULED" || m.status === "IN_PLAY")) {
+      matches.push(m);
+    }
+  }
+  return matches.sort((a, b) => a.utcDate.localeCompare(b.utcDate));
+}
+
 /* ── Melhores marcadores (API core: leaders + resolução de refs) ── */
 
 interface CoreLeaderCategory {

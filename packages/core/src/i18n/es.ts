@@ -128,5 +128,6 @@ export const es: Dictionary = {
     dataBy: "Datos de partidos",
     liveUpdates: "Actualización automática",
     league: "Liga",
+    allLeagues: "Todas las ligas",
   },
 };

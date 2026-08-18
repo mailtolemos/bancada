@@ -1,47 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMatches } from "@/lib/data";
+import { activeLeagues, getLeague, type Match } from "@bancada/core";
+import { getSeasonFixtures } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Exporta os próximos jogos de uma equipa em formato iCalendar (.ics),
- * pronto a importar no calendário do telemóvel/computador.
- * GET /api/calendar?team=<id>&name=<nome>&league=<liga>
+ * Exporta jogos em formato iCalendar (.ics) — época completa.
+ *
+ *   /api/calendar?team=<id>&name=<nome>[&league=<liga>]  → jogos de uma equipa
+ *   /api/calendar?league=<liga>                          → todos os jogos da liga
+ *   /api/calendar?all=1                                  → todas as ligas ativas
  */
 export async function GET(req: NextRequest) {
-  const teamId = Number(req.nextUrl.searchParams.get("team"));
-  const teamName = req.nextUrl.searchParams.get("name") ?? "Clube";
-  const league = req.nextUrl.searchParams.get("league") ?? undefined;
-  if (!Number.isFinite(teamId)) {
-    return NextResponse.json({ error: "team obrigatório" }, { status: 400 });
-  }
+  const sp = req.nextUrl.searchParams;
+  const teamId = sp.get("team") ? Number(sp.get("team")) : null;
+  const teamName = sp.get("name") ?? "";
+  const leagueId = sp.get("league") ?? undefined;
+  const all = sp.get("all") === "1";
 
-  const matches = await getMatches(league).catch(() => []);
-  const upcoming = matches
-    .filter(
-      (m) =>
-        (m.home.id === teamId || m.away.id === teamId) &&
-        (m.status === "TIMED" || m.status === "SCHEDULED" || m.status === "IN_PLAY")
-    )
-    .sort((a, b) => a.utcDate.localeCompare(b.utcDate));
+  let matches: Match[] = [];
+  let calName = "bancada.";
+
+  if (all) {
+    const lists = await Promise.all(activeLeagues().map((l) => getSeasonFixtures(l.id)));
+    matches = lists.flat().sort((a, b) => a.utcDate.localeCompare(b.utcDate));
+    calName = "bancada. — Todas as ligas";
+  } else if (teamId != null && Number.isFinite(teamId)) {
+    const fixtures = await getSeasonFixtures(leagueId);
+    matches = fixtures.filter((m) => m.home.id === teamId || m.away.id === teamId);
+    calName = `bancada. — ${teamName || "Clube"}`;
+  } else if (leagueId) {
+    const league = getLeague(leagueId);
+    matches = await getSeasonFixtures(leagueId);
+    calName = `bancada. — ${league?.name ?? leagueId}`;
+  } else {
+    return NextResponse.json(
+      { error: "usa ?team=<id>, ?league=<liga> ou ?all=1" },
+      { status: 400 }
+    );
+  }
 
   const stamp = (iso: string) =>
     new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const now = stamp(new Date().toISOString());
 
-  const events = upcoming
+  const events = matches
     .map((m) => {
+      const league = getLeague(m.leagueId);
       const start = stamp(m.utcDate);
       const end = stamp(new Date(new Date(m.utcDate).getTime() + 2 * 3600_000).toISOString());
       const summary = `⚽ ${m.home.shortName} vs ${m.away.shortName}`;
-      const location = m.venue ? escapeIcs(m.venue) : "";
+      const description = league ? `${league.name} · bancada.` : "bancada.";
       return [
         "BEGIN:VEVENT",
-        `UID:bancada-${m.id}@bancada.app`,
-        `DTSTAMP:${stamp(new Date().toISOString())}`,
+        `UID:bancada-${m.leagueId}-${m.id}@bancada.app`,
+        `DTSTAMP:${now}`,
         `DTSTART:${start}`,
         `DTEND:${end}`,
         `SUMMARY:${escapeIcs(summary)}`,
-        location ? `LOCATION:${location}` : null,
+        `DESCRIPTION:${escapeIcs(description)}`,
+        m.venue ? `LOCATION:${escapeIcs(m.venue)}` : null,
         "END:VEVENT",
       ]
         .filter(Boolean)
@@ -53,20 +71,38 @@ export async function GET(req: NextRequest) {
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//bancada.//Jogos//PT",
-    `X-WR-CALNAME:${escapeIcs(`bancada. — ${teamName}`)}`,
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    `X-WR-CALNAME:${escapeIcs(calName)}`,
     events,
     "END:VCALENDAR",
+    "",
   ].join("\r\n");
+
+  const filename = all
+    ? "bancada-todas-as-ligas.ics"
+    : teamId != null
+      ? `bancada-${teamName ? slugify(teamName) : teamId}.ics`
+      : `bancada-${leagueId}.ics`;
 
   return new NextResponse(ics, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="bancada-${teamId}.ics"`,
-      "Cache-Control": "public, s-maxage=3600",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=21600",
     },
   });
 }
 
 function escapeIcs(text: string): string {
   return text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+}
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
