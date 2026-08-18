@@ -2,23 +2,31 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  CalendarDays,
+  Home,
+  ListOrdered,
+  Newspaper,
+  Shield,
+  Trophy,
+} from "lucide-react";
 import type { Dictionary, Locale } from "@bancada/core";
 
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  Icon: typeof Home;
   exact?: boolean;
   desktopOnly?: boolean;
 }
 
 const items = (locale: Locale, dict: Dictionary): NavItem[] => [
-  { href: `/${locale}`, label: dict.nav.home, exact: true, icon: "⌂" },
-  { href: `/${locale}/jogos`, label: dict.nav.matches, icon: "⚽" },
-  { href: `/${locale}/classificacao`, label: dict.nav.standings, icon: "▤" },
-  { href: `/${locale}/marcadores`, label: dict.nav.scorers, icon: "🥇", desktopOnly: true },
-  { href: `/${locale}/clubes`, label: dict.nav.clubs, icon: "🛡" },
-  { href: `/${locale}/noticias`, label: dict.nav.news, icon: "📰" },
+  { href: `/${locale}`, label: dict.nav.home, exact: true, Icon: Home },
+  { href: `/${locale}/jogos`, label: dict.nav.matches, Icon: CalendarDays },
+  { href: `/${locale}/classificacao`, label: dict.nav.standings, Icon: ListOrdered },
+  { href: `/${locale}/marcadores`, label: dict.nav.scorers, Icon: Trophy, desktopOnly: true },
+  { href: `/${locale}/clubes`, label: dict.nav.clubs, Icon: Shield },
+  { href: `/${locale}/noticias`, label: dict.nav.news, Icon: Newspaper },
 ];
 
 export function NavLinks({ locale, dict }: { locale: Locale; dict: Dictionary }) {
@@ -31,8 +39,9 @@ export function NavLinks({ locale, dict }: { locale: Locale; dict: Dictionary })
           <Link
             key={item.href}
             href={item.href}
-            className={`nav-link ${active ? "nav-link-active" : ""}`}
+            className={`nav-link flex items-center gap-1.5 ${active ? "nav-link-active" : ""}`}
           >
+            <item.Icon size={15} strokeWidth={2.25} aria-hidden />
             {item.label}
           </Link>
         );
@@ -50,24 +59,22 @@ export function MobileNav({ locale, dict }: { locale: Locale; dict: Dictionary }
         {items(locale, dict)
           .filter((item) => !item.desktopOnly)
           .map((item) => {
-          const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${
-                active
-                  ? "text-pitch-600 dark:text-pitch-400"
-                  : "text-neutral-500 dark:text-neutral-400"
-              }`}
-            >
-              <span className="text-base leading-none" aria-hidden>
-                {item.icon}
-              </span>
-              {item.label}
-            </Link>
-          );
-        })}
+            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium ${
+                  active
+                    ? "text-pitch-600 dark:text-pitch-400"
+                    : "text-neutral-500 dark:text-neutral-400"
+                }`}
+              >
+                <item.Icon size={19} strokeWidth={active ? 2.5 : 2} aria-hidden />
+                {item.label}
+              </Link>
+            );
+          })}
       </div>
     </nav>
   );

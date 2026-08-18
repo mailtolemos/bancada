@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { clubMetaForTeamName, getDictionary, isLocale } from "@bancada/core";
 import { getStandings, isDemo } from "@/lib/data";
+import { Shield } from "lucide-react";
 import { Crest } from "@/components/Crest";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";
 
@@ -21,7 +22,7 @@ export default async function ClubsPage({
   return (
     <div className="space-y-4">
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
-      <SectionHeader title={`🛡 ${dict.clubs.title} — Liga Portugal`} />
+      <SectionHeader title={`${dict.clubs.title} — Liga Portugal`} icon={<Shield size={15} />} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {teams.map((row) => {
           const meta = clubMetaForTeamName(row.team.name);

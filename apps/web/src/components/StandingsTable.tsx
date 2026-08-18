@@ -22,12 +22,15 @@ export function StandingsTable({
   dict,
   compact = false,
   highlightTeamId,
+  linkClubs = true,
 }: {
   standings: StandingRow[];
   locale: Locale;
   dict: Dictionary;
   compact?: boolean;
   highlightTeamId?: number;
+  /** Ligações para páginas de clube (só a Liga Portugal tem páginas próprias). */
+  linkClubs?: boolean;
 }) {
   const total = standings.length;
   return (
@@ -71,10 +74,17 @@ export function StandingsTable({
                   {row.position}
                 </td>
                 <td className="py-2">
-                  <Link href={`/${locale}/clube/${slug}`} className="flex items-center gap-2 hover:underline">
-                    <Crest team={row.team} size={20} />
-                    <span className="truncate font-medium">{row.team.shortName}</span>
-                  </Link>
+                  {linkClubs ? (
+                    <Link href={`/${locale}/clube/${slug}`} className="flex items-center gap-2 hover:underline">
+                      <Crest team={row.team} size={20} />
+                      <span className="truncate font-medium">{row.team.shortName}</span>
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Crest team={row.team} size={20} />
+                      <span className="truncate font-medium">{row.team.shortName}</span>
+                    </span>
+                  )}
                 </td>
                 <td className="py-2 text-center tabular-nums">{row.playedGames}</td>
                 {!compact && (

@@ -10,7 +10,7 @@ import { cached } from "./cache";
 import { demoNews } from "./demo";
 
 const parser = new Parser({
-  timeout: 8000,
+  timeout: 4500,
   headers: {
     "User-Agent": "bancada./0.1 (agregador de notícias de futebol; +https://bancada.app)",
     Accept: "application/rss+xml, application/xml, text/xml, */*",

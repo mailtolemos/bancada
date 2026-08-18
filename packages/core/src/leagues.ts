@@ -23,7 +23,7 @@ export const LEAGUES: League[] = [
     name: "Premier League",
     country: "Inglaterra",
     countryFlag: "🏴",
-    active: false,
+    active: true,
   },
   {
     id: "la-liga",
@@ -33,7 +33,7 @@ export const LEAGUES: League[] = [
     name: "La Liga",
     country: "Espanha",
     countryFlag: "🇪🇸",
-    active: false,
+    active: true,
   },
   {
     id: "serie-a",
@@ -43,7 +43,7 @@ export const LEAGUES: League[] = [
     name: "Serie A",
     country: "Itália",
     countryFlag: "🇮🇹",
-    active: false,
+    active: true,
   },
   {
     id: "bundesliga",
@@ -53,7 +53,7 @@ export const LEAGUES: League[] = [
     name: "Bundesliga",
     country: "Alemanha",
     countryFlag: "🇩🇪",
-    active: false,
+    active: true,
   },
   {
     id: "ligue-1",
@@ -63,7 +63,7 @@ export const LEAGUES: League[] = [
     name: "Ligue 1",
     country: "França",
     countryFlag: "🇫🇷",
-    active: false,
+    active: true,
   },
   {
     id: "champions-league",
@@ -73,7 +73,7 @@ export const LEAGUES: League[] = [
     name: "Champions League",
     country: "Europa",
     countryFlag: "🇪🇺",
-    active: false,
+    active: true,
   },
 ];
 

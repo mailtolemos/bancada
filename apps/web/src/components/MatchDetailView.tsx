@@ -31,7 +31,7 @@ export function MatchDetailView({
     const interval = setInterval(async () => {
       if (document.hidden) return;
       try {
-        const res = await fetch(`/api/match/${initial.id}`);
+        const res = await fetch(`/api/match/${initial.id}?league=${initial.leagueId}`);
         if (!res.ok) return;
         const data = (await res.json()) as { match: MatchDetail };
         if (data.match) setMatch(data.match);

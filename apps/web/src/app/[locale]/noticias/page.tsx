@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CLUBS, NEWS_SOURCES, getDictionary, isLocale } from "@bancada/core";
 import { getNews } from "@/lib/data";
 import { getCommunity, getRumors } from "@/lib/buzz";
+import { Newspaper } from "lucide-react";
 import { NewsCard } from "@/components/NewsCard";
 import { SectionHeader } from "@/components/SectionHeader";
 
@@ -34,7 +35,7 @@ export default async function NewsPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
-      <SectionHeader title={`📰 ${dict.news.title}`} />
+      <SectionHeader title={dict.news.title} icon={<Newspaper size={15} />} />
 
       {/* Tabs: Notícias | Mercado & Rumores | Comunidade */}
       <div className="flex flex-wrap gap-1.5">

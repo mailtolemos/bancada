@@ -8,14 +8,17 @@ export const dynamic = "force-dynamic";
 
 export default async function MatchPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<{ liga?: string }>;
 }) {
   const { locale, id } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
+  const { liga } = await searchParams;
 
-  const match = await getMatchDetail(Number(id)).catch(() => null);
+  const match = await getMatchDetail(Number(id), liga).catch(() => null);
   if (!match) notFound();
 
   return (

@@ -19,6 +19,7 @@ export const pt = {
     seeAll: "Ver tudo",
     noLive: "Sem jogos a decorrer neste momento.",
     matchday: "Jornada",
+    myClub: "O meu clube",
   },
   match: {
     kickoff: "Apito inicial",
@@ -89,6 +90,9 @@ export const pt = {
     rumors: "Mercado & Rumores",
     rumorsEmpty: "Sem rumores de mercado neste momento.",
     communityEmpty: "Sem conversas recentes da comunidade.",
+    follow: "Seguir clube",
+    following: "A seguir",
+    addToCalendar: "Adicionar ao calendário",
   },
   news: {
     title: "Notícias",
@@ -121,6 +125,7 @@ export const pt = {
     footer: "Feito com paixão pelo futebol português.",
     dataBy: "Dados de jogos",
     liveUpdates: "Atualização automática",
+    league: "Liga",
   },
 };
 

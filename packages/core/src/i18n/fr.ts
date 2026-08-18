@@ -21,6 +21,7 @@ export const fr: Dictionary = {
     seeAll: "Tout voir",
     noLive: "Aucun match en cours pour le moment.",
     matchday: "Journée",
+    myClub: "Mon club",
   },
   match: {
     kickoff: "Coup d'envoi",
@@ -91,6 +92,9 @@ export const fr: Dictionary = {
     rumors: "Mercato & rumeurs",
     rumorsEmpty: "Pas de rumeurs de mercato pour le moment.",
     communityEmpty: "Pas de discussions récentes de la communauté.",
+    follow: "Suivre le club",
+    following: "Suivi",
+    addToCalendar: "Ajouter au calendrier",
   },
   news: {
     title: "Actualités",
@@ -123,5 +127,6 @@ export const fr: Dictionary = {
     footer: "Fait avec passion pour le football portugais.",
     dataBy: "Données des matchs",
     liveUpdates: "Actualisation automatique",
+    league: "Ligue",
   },
 };

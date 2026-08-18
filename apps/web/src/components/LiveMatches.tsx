@@ -19,6 +19,7 @@ export function LiveMatches({
   emptyText,
   teamId,
   limit,
+  leagueId = "primeira-liga",
 }: {
   initial: Match[];
   locale: Locale;
@@ -28,15 +29,20 @@ export function LiveMatches({
   emptyText?: string;
   teamId?: number;
   limit?: number;
+  leagueId?: string;
 }) {
   const [matches, setMatches] = useState<Match[]>(initial);
+
+  useEffect(() => {
+    setMatches(initial);
+  }, [initial]);
 
   useEffect(() => {
     // Só vale a pena polling se houver (ou puder haver) jogo ao vivo hoje.
     const interval = setInterval(async () => {
       if (document.hidden) return;
       try {
-        const res = await fetch("/api/matches");
+        const res = await fetch(`/api/matches?league=${leagueId}`);
         if (!res.ok) return;
         const data = (await res.json()) as { matches: Match[] };
         if (Array.isArray(data.matches) && data.matches.length) setMatches(data.matches);
@@ -45,7 +51,7 @@ export function LiveMatches({
       }
     }, POLL_MS);
     return () => clearInterval(interval);
-  }, []);
+  }, [leagueId]);
 
   let list = matches;
   if (teamId != null) list = list.filter((m) => m.home.id === teamId || m.away.id === teamId);

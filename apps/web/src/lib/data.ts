@@ -74,7 +74,7 @@ export async function getMatches(leagueId?: string): Promise<Match[]> {
         ? fd.getMatches(lg, { dateFrom: dateStr(-7), dateTo: dateStr(10) })
         : espn.getMatches(lg),
     TTL.matchesIdle * 6
-  ).catch(() => demoMatches());
+  ).catch(() => (lg.id === DEFAULT_LEAGUE ? demoMatches() : []));
 }
 
 export async function getLiveMatches(leagueId?: string): Promise<Match[]> {
@@ -117,7 +117,7 @@ export async function getStandings(leagueId?: string): Promise<StandingRow[]> {
   if (isDemo()) return demoStandings();
   return cached(`standings:${lg.id}`, TTL.standings, () =>
     useFootballData() ? fd.getStandings(lg) : espn.getStandings(lg)
-  ).catch(() => demoStandings());
+  ).catch(() => (lg.id === DEFAULT_LEAGUE ? demoStandings() : []));
 }
 
 /** Marcadores reais: ESPN leaders; football-data como alternativa; demo em último caso. */
@@ -129,14 +129,14 @@ export async function getScorers(leagueId?: string): Promise<Scorer[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoScorers();
   return cached(`scorers:${lg.id}`, TTL.scorers, async () => {
-    if (useFootballData()) return fd.getScorers(lg);
+    if (useFootballData() && lg.id === DEFAULT_LEAGUE) return fd.getScorers(lg);
     try {
       return await espn.getScorers(lg);
     } catch {
-      if (fd.isConfigured()) return fd.getScorers(lg);
+      if (fd.isConfigured() && lg.id === DEFAULT_LEAGUE) return fd.getScorers(lg);
       throw new Error("sem fornecedor de marcadores");
     }
-  }).catch(() => demoScorers());
+  }).catch(() => (lg.id === DEFAULT_LEAGUE ? demoScorers() : []));
 }
 
 export { getNews } from "./news";

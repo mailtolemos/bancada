@@ -45,9 +45,10 @@ export function MatchCard({
 }) {
   const live = LIVE_STATUSES.includes(match.status);
   const played = match.score.home != null;
+  const ligaParam = match.leagueId !== "primeira-liga" ? `?liga=${match.leagueId}` : "";
   return (
     <Link
-      href={`/${locale}/jogo/${match.id}`}
+      href={`/${locale}/jogo/${match.id}${ligaParam}`}
       className={`card flex items-center gap-3 px-4 py-3 transition-transform hover:-translate-y-0.5 hover:shadow-md ${
         live ? "ring-1 ring-red-500/40" : ""
       }`}

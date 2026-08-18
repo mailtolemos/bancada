@@ -22,7 +22,7 @@ import { cached } from "./cache";
 
 // Google News aceita UA estilo curl; o Reddit exige um UA identificado.
 const parser = new Parser({
-  timeout: 8000,
+  timeout: 4500,
   headers: {
     "User-Agent": "curl/8.5.0",
     Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
@@ -30,7 +30,7 @@ const parser = new Parser({
 });
 
 const redditParser = new Parser({
-  timeout: 8000,
+  timeout: 4500,
   headers: {
     "User-Agent": "bancada:web:v0.1 (by /u/bancada-app)",
     Accept: "application/atom+xml, application/xml, */*",

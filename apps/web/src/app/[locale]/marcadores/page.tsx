@@ -1,25 +1,36 @@
 import { notFound } from "next/navigation";
-import { getDictionary, isLocale } from "@bancada/core";
+import { Trophy } from "lucide-react";
+import { DEFAULT_LEAGUE, getDictionary, getLeague, isLocale } from "@bancada/core";
 import { getScorers, isScorersDemo } from "@/lib/data";
 import { Crest } from "@/components/Crest";
+import { LeagueSwitcher } from "@/components/LeagueSwitcher";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";
 
 export const dynamic = "force-dynamic";
 
 export default async function ScorersPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ liga?: string }>;
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
-  const scorers = await getScorers().catch(() => []);
+  const { liga } = await searchParams;
+  const leagueId = liga ?? DEFAULT_LEAGUE;
+  const league = getLeague(leagueId);
+  const scorers = await getScorers(leagueId).catch(() => []);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       {isScorersDemo() && <DemoBanner text={dict.common.demoNotice} />}
-      <SectionHeader title={`⚽ ${dict.scorers.title}`} />
+      <LeagueSwitcher basePath={`/${locale}/marcadores`} current={leagueId} />
+      <SectionHeader
+        title={`${league?.countryFlag ?? ""} ${dict.scorers.title}`}
+        icon={<Trophy size={15} />}
+      />
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
