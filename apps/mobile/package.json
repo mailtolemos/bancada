@@ -12,16 +12,16 @@
   "dependencies": {
     "@bancada/core": "workspace:*",
     "@expo/vector-icons": "^15.1.1",
-    "expo": "~57.0.14",
-    "expo-constants": "~57.0.12",
-    "expo-linking": "~57.0.6",
-    "expo-localization": "~57.0.1",
-    "expo-router": "~57.0.14",
-    "expo-status-bar": "~57.0.1",
-    "expo-system-ui": "~57.0.2",
-    "react": "19.2.3",
-    "react-native": "0.86.2",
-    "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.2"
+    "expo": "~54.0.37",
+    "expo-constants": "~18.0.14",
+    "expo-linking": "~8.0.12",
+    "expo-localization": "~17.0.9",
+    "expo-router": "~6.0.24",
+    "expo-status-bar": "~3.0.9",
+    "expo-system-ui": "~6.0.9",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.16.0"
   }
 }

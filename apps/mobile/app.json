@@ -27,7 +27,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },
-    "plugins": ["expo-router", "expo-status-bar", "expo-localization"],
+    "plugins": [
+      "expo-router",
+      "expo-localization"
+    ],
     "extra": {
       "apiUrl": "https://bancada-gules.vercel.app"
     }
