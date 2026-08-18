@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "bancada.",
+    "slug": "bancada",
+    "version": "0.1.0",
+    "scheme": "bancada",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.bancada.mobile",
+      "supportsTablet": false,
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true
+      }
+    },
+    "android": {
+      "package": "app.bancada.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#12382b"
+      }
+    },
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0a"
+    },
+    "plugins": ["expo-router", "expo-status-bar", "expo-localization"],
+    "extra": {
+      "apiUrl": "https://bancada-gules.vercel.app"
+    }
+  }
+}
