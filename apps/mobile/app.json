@@ -32,7 +32,7 @@
       "expo-localization"
     ],
     "extra": {
-      "apiUrl": "https://bancada-gules.vercel.app"
+      "apiUrl": "https://www.bancada.live"
     }
   }
 }

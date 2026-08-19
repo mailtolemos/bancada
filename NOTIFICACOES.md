@@ -32,7 +32,7 @@ O detetor de golos dispara sozinho com o tráfego do site (quem tem a app
 aberta durante um jogo alimenta a deteção). Para garantir notificações mesmo
 sem ninguém no site, cria um cron grátis em https://cron-job.org:
 
-- URL: `https://bancada-gules.vercel.app/api/cron/goal-watch?key=CRON_SECRET`
+- URL: `https://www.bancada.live/api/cron/goal-watch?key=CRON_SECRET`
 - Frequência: a cada 1 minuto
 - (opcional: restringe o horário a tardes/noites de jogos para poupar)
 
@@ -48,7 +48,7 @@ sem ninguém no site, cria um cron grátis em https://cron-job.org:
 
 ```bash
 # disparar um ciclo de deteção:
-curl "https://bancada-gules.vercel.app/api/cron/goal-watch?key=CRON_SECRET"
+curl "https://www.bancada.live/api/cron/goal-watch?key=CRON_SECRET"
 # → {"ok":true,"events":N,"sent":M}
 ```
 

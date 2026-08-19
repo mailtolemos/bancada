@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "bancada. — Todo o futebol. Num só lugar.",
   manifest: "/manifest.webmanifest",
   icons: { apple: "/apple-touch-icon.png" },

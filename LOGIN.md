@@ -15,7 +15,7 @@ prontos para o futuro premium.
    - Application type: **Web application**
    - Name: `bancada web`
    - **Authorized redirect URIs** — adiciona as duas:
-     - `https://bancada-gules.vercel.app/api/auth/callback/google`
+     - `https://www.bancada.live/api/auth/callback/google`
      - `http://localhost:3000/api/auth/callback/google`
    - Create → copia o **Client ID** e o **Client secret**
 
@@ -29,7 +29,7 @@ Preview) e **Redeploy** no fim:
 | `AUTH_SECRET` | gera com `npx auth secret` (ou qualquer string aleatória longa) |
 | `AUTH_GOOGLE_ID` | o Client ID do passo 1 |
 | `AUTH_GOOGLE_SECRET` | o Client secret do passo 1 |
-| `AUTH_URL` | `https://bancada-gules.vercel.app` |
+| `AUTH_URL` | `https://www.bancada.live` |
 
 > Sem estas variáveis o botão "Entrar" nem aparece — a app continua a
 > funcionar normalmente com favoritos locais.

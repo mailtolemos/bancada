@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { clubMetaForTeamName } from "@bancada/core";
 import { getMatchDetail } from "@/lib/data";
+import { SITE_HOST } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
@@ -107,7 +108,7 @@ export default async function OgImage({
         </div>
 
         <div style={{ display: "flex", fontSize: 24, color: "#6b7280", justifyContent: "center" }}>
-          Todo o futebol. Num só lugar. — bancada-gules.vercel.app
+          Todo o futebol. Num só lugar. — {SITE_HOST}
         </div>
       </div>
     ),

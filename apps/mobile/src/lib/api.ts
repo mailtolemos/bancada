@@ -7,7 +7,7 @@ import type { Match, MatchDetail, NewsItem, Scorer, StandingRow } from "@bancada
 
 const API =
   (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
-  "https://bancada-gules.vercel.app";
+  "https://www.bancada.live";
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${API}${path}`, {
