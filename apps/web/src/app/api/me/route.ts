@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, authEnabled, authMissing } from "@/auth";
+import { auth, authDiagnostics, authEnabled } from "@/auth";
 import { getProfile, saveProfile } from "@/lib/profile";
 
 export const dynamic = "force-dynamic";
@@ -10,13 +10,14 @@ export async function GET() {
     return NextResponse.json({
       signedIn: false,
       authEnabled: false,
-      missingEnv: authMissing(),
+      diagnostics: authDiagnostics(),
     });
   }
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    if (!userId) return NextResponse.json({ signedIn: false, authEnabled: true });
+    if (!userId)
+      return NextResponse.json({ signedIn: false, authEnabled: true, diagnostics: authDiagnostics() });
     return NextResponse.json({
       signedIn: true,
       authEnabled: true,

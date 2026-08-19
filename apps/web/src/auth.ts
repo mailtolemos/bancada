@@ -1,45 +1,81 @@
 /**
- * Autenticação (Auth.js v5) — sessão em JWT/cookie, sem base de dados.
- * O perfil do utilizador (clube favorito, competições) vive no KV.
+ * Autenticação (Auth.js v5). Dois métodos, ambos opcionais:
  *
- * Ativa-se com AUTH_SECRET + AUTH_GOOGLE_ID/AUTH_GOOGLE_SECRET.
- * Sem essas variáveis a app funciona na mesma (favoritos ficam no dispositivo)
- * — o segredo de reserva evita que o Auth.js rebente ao inicializar.
+ *  1. **Magic link por email** (recomendado — sem consolas de terceiros):
+ *     AUTH_RESEND_KEY + AUTH_EMAIL_FROM. Guarda os tokens no Upstash Redis
+ *     (as mesmas variáveis KV_REST_API_* que já usamos).
+ *  2. **Google**: AUTH_GOOGLE_ID + AUTH_GOOGLE_SECRET.
+ *
+ * Sem nenhum configurado a app funciona na mesma (favoritos no dispositivo).
  */
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
+import Resend from "next-auth/providers/resend";
+import { UpstashRedisAdapter } from "@auth/upstash-redis-adapter";
+import { Redis } from "@upstash/redis";
 
-const hasGoogle = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
+const GOOGLE_ID = process.env.AUTH_GOOGLE_ID?.trim();
+const GOOGLE_SECRET = process.env.AUTH_GOOGLE_SECRET?.trim();
+const RESEND_KEY = process.env.AUTH_RESEND_KEY?.trim();
+const EMAIL_FROM = process.env.AUTH_EMAIL_FROM?.trim() || "bancada. <onboarding@resend.dev>";
 
-export const authEnabled = Boolean(process.env.AUTH_SECRET) && hasGoogle;
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
 
-/** O que falta para ativar o login (diagnóstico, sem revelar valores). */
-export function authMissing(): string[] {
-  const missing: string[] = [];
-  if (!process.env.AUTH_SECRET) missing.push("AUTH_SECRET");
-  if (!process.env.AUTH_GOOGLE_ID) missing.push("AUTH_GOOGLE_ID");
-  if (!process.env.AUTH_GOOGLE_SECRET) missing.push("AUTH_GOOGLE_SECRET");
-  return missing;
+const hasGoogle = Boolean(GOOGLE_ID && GOOGLE_SECRET);
+const hasRedis = Boolean(REDIS_URL && REDIS_TOKEN);
+// Magic links precisam de armazenamento para os tokens de verificação.
+const hasMagicLink = Boolean(RESEND_KEY) && hasRedis;
+
+export const authEnabled = Boolean(process.env.AUTH_SECRET) && (hasGoogle || hasMagicLink);
+
+/** Diagnóstico do login (sem revelar valores). */
+export function authDiagnostics() {
+  return {
+    enabled: authEnabled,
+    methods: [hasMagicLink ? "email" : null, hasGoogle ? "google" : null].filter(Boolean),
+    missing: [
+      !process.env.AUTH_SECRET ? "AUTH_SECRET" : null,
+      !hasGoogle && !hasMagicLink ? "AUTH_RESEND_KEY (magic link) ou AUTH_GOOGLE_ID+SECRET" : null,
+      RESEND_KEY && !hasRedis ? "Upstash Redis (necessário para magic link)" : null,
+    ].filter(Boolean),
+    // Ajuda a apanhar Client IDs truncados/trocados sem os expor.
+    google: hasGoogle
+      ? {
+          idLength: GOOGLE_ID!.length,
+          idEndsCorrectly: GOOGLE_ID!.endsWith(".apps.googleusercontent.com"),
+          secretLooksLikeId: Boolean(GOOGLE_SECRET?.includes("apps.googleusercontent.com")),
+        }
+      : null,
+    emailFrom: hasMagicLink ? EMAIL_FROM : null,
+  };
+}
+
+const providers: NextAuthConfig["providers"] = [];
+if (hasMagicLink) providers.push(Resend({ apiKey: RESEND_KEY!, from: EMAIL_FROM }));
+if (hasGoogle) {
+  providers.push(
+    Google({
+      clientId: GOOGLE_ID,
+      clientSecret: GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    })
+  );
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  // Reserva só para o Auth.js inicializar sem credenciais; sem providers
-  // não há sessões, por isso não protege nada de real.
+  // Reserva só para o Auth.js inicializar sem credenciais configuradas.
   secret: process.env.AUTH_SECRET ?? "bancada-placeholder-secret-not-in-use",
-  providers: hasGoogle
-    ? [
-        Google({
-          clientId: process.env.AUTH_GOOGLE_ID,
-          clientSecret: process.env.AUTH_GOOGLE_SECRET,
-          allowDangerousEmailAccountLinking: true,
-        }),
-      ]
-    : [],
+  adapter: hasMagicLink
+    ? UpstashRedisAdapter(new Redis({ url: REDIS_URL!, token: REDIS_TOKEN! }))
+    : undefined,
+  providers,
   session: { strategy: "jwt" },
   trustHost: true,
   callbacks: {
-    jwt({ token, profile }) {
+    jwt({ token, user, profile }) {
       if (profile?.sub) token.sub = profile.sub;
+      else if (user?.id) token.sub = user.id;
       return token;
     },
     session({ session, token }) {
