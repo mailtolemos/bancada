@@ -35,7 +35,7 @@ export function Wordmark({ tagline, className = "" }: { tagline?: string; classN
       <span>bancada</span>
       <span className="text-pitch-600 dark:text-pitch-400">.</span>
       {tagline && (
-        <span className="ml-2.5 hidden max-w-56 truncate text-xs font-medium normal-case tracking-normal text-neutral-400 sm:inline">
+        <span className="ml-2.5 hidden max-w-56 truncate text-xs font-medium normal-case tracking-normal text-neutral-400 xl:inline">
           {tagline}
         </span>
       )}

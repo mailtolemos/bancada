@@ -11,14 +11,14 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
     <>
       <header className="sticky top-0 z-40 border-b border-neutral-200/70 bg-neutral-100/85 backdrop-blur-md dark:border-neutral-800/70 dark:bg-neutral-950/85">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
-          <Link href={`/${locale}`} className="flex items-center gap-2.5" aria-label={dict.appName}>
+          <Link href={`/${locale}`} className="flex min-w-0 shrink items-center gap-2.5" aria-label={dict.appName}>
             <LogoIcon size={32} />
             <Wordmark tagline={dict.tagline} className="text-xl" />
           </Link>
-          <nav className="ml-4 hidden items-center gap-1 md:flex">
+          <nav className="ml-3 hidden shrink-0 items-center gap-0.5 md:flex lg:gap-1">
             <NavLinks locale={locale} dict={dict} />
           </nav>
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
             <AccountButton
               labels={{
                 signIn: dict.common.signIn,
