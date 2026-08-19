@@ -7,11 +7,20 @@
  * teria a sua cópia, por isso o Upstash é recomendado em produção).
  */
 
-const URL_ = process.env.UPSTASH_REDIS_REST_URL;
-const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// A integração da Vercel injeta as credenciais com nomes diferentes conforme
+// a versão do marketplace — aceitamos ambas as convenções.
+const URL_ = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
 
 export function kvConfigured(): boolean {
   return Boolean(URL_ && TOKEN);
+}
+
+/** Qual a convenção de env vars encontrada (diagnóstico). */
+export function kvVarScheme(): string {
+  if (process.env.UPSTASH_REDIS_REST_URL) return "UPSTASH_REDIS_REST_*";
+  if (process.env.KV_REST_API_URL) return "KV_REST_API_*";
+  return "nenhuma";
 }
 
 async function redis(cmd: (string | number)[]): Promise<unknown> {

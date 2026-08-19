@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getClub } from "@bancada/core";
-import { kvConfigured, kvSMembers } from "@/lib/kv";
+import { kvConfigured, kvSMembers, kvVarScheme } from "@/lib/kv";
 import { pushConfigured, sendToClub } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     subscribers,
     sent,
     kvPartilhado: kvConfigured(),
+    kvVars: kvVarScheme(),
     pushConfigurado: pushConfigured(),
     nota:
       subscribers === 0
