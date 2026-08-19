@@ -93,6 +93,10 @@ export const pt = {
     follow: "Seguir clube",
     following: "A seguir",
     addToCalendar: "Adicionar ao calendário",
+    notifyEnable: "Receber golos deste clube",
+    notifyEnabled: "Notificações de golos ativas",
+    notifyIosHint: "Para notificações no iPhone: Partilhar → Adicionar ao ecrã principal",
+    notifyDenied: "Notificações bloqueadas no browser",
   },
   news: {
     title: "Notícias",

@@ -21,6 +21,7 @@ import { getMatches, getNews, getStandings, isDemo } from "@/lib/data";
 import { getCommunity, getRumors } from "@/lib/buzz";
 import { Crest } from "@/components/Crest";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { NotificationsButton } from "@/components/NotificationsButton";
 import { LiveMatches } from "@/components/LiveMatches";
 import { NewsCard } from "@/components/NewsCard";
 import { StandingsTable } from "@/components/StandingsTable";
@@ -83,6 +84,15 @@ export default async function ClubPage({
           <FavoriteButton
             club={{ slug, teamId: team.id, name: team.shortName }}
             labels={{ follow: dict.clubs.follow, following: dict.clubs.following }}
+          />
+          <NotificationsButton
+            club={slug}
+            labels={{
+              enable: dict.clubs.notifyEnable,
+              enabled: dict.clubs.notifyEnabled,
+              iosHint: dict.clubs.notifyIosHint,
+              denied: dict.clubs.notifyDenied,
+            }}
           />
           <a
             href={`/api/calendar?team=${team.id}&name=${encodeURIComponent(team.shortName)}`}

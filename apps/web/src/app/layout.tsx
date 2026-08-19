@@ -5,6 +5,13 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "bancada. — Todo o futebol. Num só lugar.",
+  manifest: "/manifest.webmanifest",
+  icons: { apple: "/apple-touch-icon.png" },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "bancada.",
+  },
   description:
     "Resultados ao vivo, classificações, onze inicial, golos e notícias de múltiplas fontes fiáveis. Liga Portugal primeiro, o mundo a seguir.",
   applicationName: "bancada.",

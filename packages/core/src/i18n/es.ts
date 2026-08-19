@@ -95,6 +95,10 @@ export const es: Dictionary = {
     follow: "Seguir club",
     following: "Siguiendo",
     addToCalendar: "Añadir al calendario",
+    notifyEnable: "Recibir goles de este club",
+    notifyEnabled: "Notificaciones de goles activas",
+    notifyIosHint: "Para notificaciones en iPhone: Compartir → Añadir a pantalla de inicio",
+    notifyDenied: "Notificaciones bloqueadas en el navegador",
   },
   news: {
     title: "Noticias",
