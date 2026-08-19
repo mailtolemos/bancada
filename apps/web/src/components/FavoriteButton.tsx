@@ -11,6 +11,8 @@ export interface FavoriteClub {
   slug: string;
   teamId: number;
   name: string;
+  /** competição onde a equipa foi encontrada (para ir buscar os jogos) */
+  leagueId?: string;
 }
 
 const KEY = "bancada:fav-club";

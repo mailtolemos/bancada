@@ -89,7 +89,7 @@ export default async function ClubPage({
         </div>
         <div className="flex flex-wrap items-center gap-2 border-t border-neutral-200 px-5 py-3 dark:border-neutral-800">
           <FavoriteButton
-            club={{ slug, teamId: team.id, name: team.shortName }}
+            club={{ slug, teamId: team.id, name: team.shortName, leagueId: league.id }}
             labels={{ follow: dict.clubs.follow, following: dict.clubs.following }}
           />
           <NotificationsButton

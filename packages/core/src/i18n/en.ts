@@ -22,6 +22,11 @@ export const en: Dictionary = {
     noLive: "No matches in play right now.",
     matchday: "Matchday",
     myClub: "My club",
+    lastMatch: "Last match",
+    nextMatch: "Next match",
+    liveNowShort: "Live",
+    noRecentMatch: "No recent matches.",
+    noNextMatch: "No upcoming match scheduled.",
   },
   match: {
     kickoff: "Kick-off",

@@ -20,6 +20,11 @@ export const pt = {
     noLive: "Sem jogos a decorrer neste momento.",
     matchday: "Jornada",
     myClub: "O meu clube",
+    lastMatch: "Último jogo",
+    nextMatch: "Próximo jogo",
+    liveNowShort: "A decorrer",
+    noRecentMatch: "Sem jogos recentes.",
+    noNextMatch: "Sem próximo jogo agendado.",
   },
   match: {
     kickoff: "Apito inicial",

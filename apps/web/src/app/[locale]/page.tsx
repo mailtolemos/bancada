@@ -46,8 +46,8 @@ export default async function HomePage({
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <LeagueSwitcher basePath={`/${locale}`} current={leagueId} />
 
-      {/* O meu clube (favorito local) */}
-      {isDefault && <MyClub matches={matches} locale={locale} dict={dict} />}
+      {/* O meu clube (favorito guardado no dispositivo/conta) */}
+      <MyClub matches={matches} locale={locale} dict={dict} />
 
       {/* Ao vivo / hoje */}
       <section>
