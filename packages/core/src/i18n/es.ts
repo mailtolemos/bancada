@@ -68,6 +68,11 @@ export const es: Dictionary = {
     conferenceLeague: "Conference League",
     relegation: "Descenso",
     relegationPlayoff: "Play-off de descenso",
+    qualified: "Clasificación directa",
+    playoff: "Play-off",
+    eliminated: "Eliminado",
+    leaguePhase: "Fase de liga",
+    notStarted: "Esta competición aún no ha empezado. Vuelve pronto.",
   },
   scorers: {
     title: "Máximos goleadores",
@@ -133,5 +138,9 @@ export const es: Dictionary = {
     liveUpdates: "Actualización automática",
     league: "Liga",
     allLeagues: "Todas las ligas",
+    signIn: "Iniciar sesión",
+    signOut: "Cerrar sesión",
+    account: "Cuenta",
+    syncing: "Sincronizando…",
   },
 };

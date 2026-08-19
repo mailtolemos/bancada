@@ -17,6 +17,7 @@ import type {
   MatchTeamStats,
   Scorer,
   StandingRow,
+  StandingsGroup,
   TeamLineup,
   TeamRef,
 } from "@bancada/core";
@@ -148,19 +149,21 @@ export async function getMatches(league: League): Promise<Match[]> {
     .filter((m): m is Match => m !== null);
 }
 
-export async function getStandings(league: League): Promise<StandingRow[]> {
-  const [data, form] = await Promise.all([
-    espn<{
-      children?: Array<{ standings?: { entries?: EspnStandingEntry[] } }>;
-      standings?: { entries?: EspnStandingEntry[] };
-    }>(`${BASE_V2}/${slug(league)}/standings`),
-    seasonForm(league).catch(() => new Map<number, string>()),
-  ]);
-  const entries = data.children?.[0]?.standings?.entries ?? data.standings?.entries ?? [];
+interface EspnStandingsResponse {
+  season?: number;
+  children?: Array<{ name?: string; abbreviation?: string; standings?: { entries?: EspnStandingEntry[] } }>;
+  standings?: { entries?: EspnStandingEntry[] };
+}
+
+interface EspnStandingEntry {
+  team: EspnTeam;
+  stats: Array<{ name: string; value?: number; displayValue?: string }>;
+}
+
+function rowsFrom(entries: EspnStandingEntry[], form: Map<number, string>): StandingRow[] {
   return entries
     .map((entry) => {
-      const stat = (name: string) =>
-        Number(entry.stats.find((s) => s.name === name)?.value ?? 0);
+      const stat = (name: string) => Number(entry.stats.find((s) => s.name === name)?.value ?? 0);
       return {
         position: stat("rank"),
         team: team(entry.team),
@@ -178,6 +181,52 @@ export async function getStandings(league: League): Promise<StandingRow[]> {
     .sort((a, b) => a.position - b.position);
 }
 
+/**
+ * Classificação com suporte a grupos/fases: liga simples devolve um grupo
+ * sem nome; MLS devolve as duas conferências; UCL devolve a fase de liga;
+ * Mundial/Libertadores devolvem os grupos.
+ */
+export async function getStandings(league: League): Promise<StandingsGroup[]> {
+  const [data, form] = await Promise.all([
+    espn<EspnStandingsResponse>(`${BASE_V2}/${slug(league)}/standings`),
+    seasonForm(league).catch(() => new Map<number, string>()),
+  ]);
+
+  const children = data.children ?? [];
+  if (children.length > 1) {
+    return children
+      .map((child) => ({
+        name: child.name ?? child.abbreviation ?? null,
+        rows: rowsFrom(child.standings?.entries ?? [], form),
+      }))
+      .filter((g) => g.rows.length > 0);
+  }
+
+  const entries = children[0]?.standings?.entries ?? data.standings?.entries ?? [];
+  if (!entries.length) return [];
+  // Fase de liga (UCL/UEL/UECL) merece etiqueta com a época; liga nacional não.
+  const single = children[0]?.name;
+  const abbrev = children[0]?.abbreviation;
+  const seasonTag = abbrev && /^\d{4}/.test(abbrev) ? abbrev : null;
+  const label =
+    league.kind === "continental" && single && !/^\d{4}/.test(single)
+      ? seasonTag
+        ? `${single} · ${seasonTag}`
+        : single
+      : null;
+  return [{ name: label, rows: rowsFrom(entries, form) }];
+}
+
+/** Ano da época atual segundo a ESPN (ex: 2026 para 2026-27). */
+export async function getSeasonYear(league: League): Promise<number | null> {
+  try {
+    const data = await espn<EspnStandingsResponse>(`${BASE_V2}/${slug(league)}/standings`);
+    return typeof data.season === "number" ? data.season : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Forma real (últimos 5 resultados, mais recente primeiro) a partir da época. */
 async function seasonForm(league: League): Promise<Map<number, string>> {
   const start = `${seasonYear()}0701`;
@@ -189,7 +238,7 @@ async function seasonForm(league: League): Promise<Map<number, string>> {
   const results = (data.events ?? [])
     .map((e) => toMatch(e, league.id))
     .filter((m): m is Match => m !== null && m.status === "FINISHED")
-    .sort((a, b) => b.utcDate.localeCompare(a.utcDate)); // mais recente primeiro
+    .sort((a, b) => b.utcDate.localeCompare(a.utcDate));
 
   const form = new Map<number, string>();
   for (const m of results) {
@@ -251,10 +300,32 @@ interface CoreLeaderCategory {
 }
 
 export async function getScorers(league: League): Promise<Scorer[]> {
-  const year = seasonYear();
-  const data = await espn<{ categories?: CoreLeaderCategory[] }>(
-    `${BASE_CORE}/${slug(league)}/seasons/${year}/types/1/leaders?lang=en&region=us`
-  );
+  // A época em curso varia por competição (ex: em agosto, PT já é 2026 mas a
+  // Premier League ainda é 2025). Tenta a época detetada e recua um ano.
+  const detected = await getSeasonYear(league);
+  const candidates = [...new Set([detected, seasonYear(), seasonYear() - 1].filter(
+    (y): y is number => typeof y === "number"
+  ))];
+
+  let data: { categories?: CoreLeaderCategory[] } | null = null;
+  for (const year of candidates) {
+    try {
+      const attempt = await espn<{ categories?: CoreLeaderCategory[] }>(
+        `${BASE_CORE}/${slug(league)}/seasons/${year}/types/1/leaders?lang=en&region=us`
+      );
+      const hasGoals = (attempt.categories ?? []).some(
+        (c) => c.name === "goals" && (c.leaders?.length ?? 0) > 0
+      );
+      if (hasGoals) {
+        data = attempt;
+        break;
+      }
+    } catch {
+      /* tenta a época seguinte da lista */
+    }
+  }
+  if (!data) throw new Error("ESPN: sem líderes de golos");
+
   const cat = (name: string) => data.categories?.find((c) => c.name === name)?.leaders ?? [];
   const goals = cat("goals").slice(0, 15);
   if (!goals.length) throw new Error("ESPN: sem líderes de golos");
@@ -314,11 +385,6 @@ function refId(ref: string): string {
 
 function secure(ref: string): string {
   return ref.replace(/^http:/, "https:");
-}
-
-interface EspnStandingEntry {
-  team: EspnTeam;
-  stats: Array<{ name: string; value?: number; displayValue?: string }>;
 }
 
 export async function getMatchDetail(league: League, id: number): Promise<MatchDetail> {

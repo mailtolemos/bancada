@@ -68,6 +68,11 @@ export const en: Dictionary = {
     conferenceLeague: "Conference League",
     relegation: "Relegation",
     relegationPlayoff: "Relegation play-off",
+    qualified: "Direct qualification",
+    playoff: "Play-off",
+    eliminated: "Eliminated",
+    leaguePhase: "League phase",
+    notStarted: "This competition hasn't started yet. Check back soon.",
   },
   scorers: {
     title: "Top scorers",
@@ -133,5 +138,9 @@ export const en: Dictionary = {
     liveUpdates: "Auto-refresh",
     league: "League",
     allLeagues: "All leagues",
+    signIn: "Sign in",
+    signOut: "Sign out",
+    account: "Account",
+    syncing: "Syncing…",
   },
 };

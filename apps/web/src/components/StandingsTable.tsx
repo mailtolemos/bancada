@@ -1,12 +1,23 @@
 import Link from "next/link";
-import { clubMetaForTeamName, type Dictionary, type Locale, type StandingRow } from "@bancada/core";
+import {
+  clubMetaForTeamName,
+  type Dictionary,
+  type Locale,
+  type StandingRow,
+  type StandingsGroup,
+} from "@bancada/core";
 import { Crest } from "./Crest";
 
 /**
- * Zonas da tabela (Liga Portugal): 1–2 Champions (+3 qual.), 4 Europa League,
- * 5 Conference (qual.), 16 play-off, 17–18 despromoção.
+ * Zonas de qualificação. Ligas nacionais usam o padrão europeu; competições
+ * continentais (fase de liga da UCL/UEL/UECL) usam apuramento direto/play-off.
  */
-function zone(pos: number, total: number): string {
+function zone(pos: number, total: number, continental: boolean): string {
+  if (continental) {
+    if (pos <= 8) return "border-l-blue-600"; // apuramento direto
+    if (pos <= 24) return "border-l-amber-500"; // play-off
+    return "border-l-red-600"; // eliminado
+  }
   if (pos <= 2) return "border-l-blue-600";
   if (pos === 3) return "border-l-blue-400";
   if (pos === 4) return "border-l-orange-500";
@@ -18,21 +29,81 @@ function zone(pos: number, total: number): string {
 
 export function StandingsTable({
   standings,
+  groups,
   locale,
   dict,
   compact = false,
   highlightTeamId,
   linkClubs = true,
+  continental = false,
+  leagueId,
 }: {
-  standings: StandingRow[];
+  /** Lista simples (retrocompatível) */
+  standings?: StandingRow[];
+  /** Ou grupos/fases (MLS, UCL, Mundial…) */
+  groups?: StandingsGroup[];
   locale: Locale;
   dict: Dictionary;
   compact?: boolean;
   highlightTeamId?: number;
-  /** Ligações para páginas de clube (só a Liga Portugal tem páginas próprias). */
   linkClubs?: boolean;
+  continental?: boolean;
+  leagueId?: string;
 }) {
-  const total = standings.length;
+  const resolved: StandingsGroup[] = groups ?? [{ name: null, rows: standings ?? [] }];
+  const visible = resolved.filter((g) => g.rows.length > 0);
+  if (!visible.length) return null;
+
+  return (
+    <div className="space-y-4">
+      {visible.map((group, i) => (
+        <div key={group.name ?? i}>
+          {group.name && (
+            <h3 className="mb-1.5 px-1 text-sm font-bold text-neutral-600 dark:text-neutral-400">
+              {group.name}
+            </h3>
+          )}
+          <GroupTable
+            rows={group.rows}
+            locale={locale}
+            dict={dict}
+            compact={compact}
+            highlightTeamId={highlightTeamId}
+            linkClubs={linkClubs}
+            continental={continental}
+            leagueId={leagueId}
+            showLegend={!compact && i === visible.length - 1}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function GroupTable({
+  rows,
+  locale,
+  dict,
+  compact,
+  highlightTeamId,
+  linkClubs,
+  continental,
+  leagueId,
+  showLegend,
+}: {
+  rows: StandingRow[];
+  locale: Locale;
+  dict: Dictionary;
+  compact: boolean;
+  highlightTeamId?: number;
+  linkClubs: boolean;
+  continental: boolean;
+  leagueId?: string;
+  showLegend: boolean;
+}) {
+  const total = rows.length;
+  const ligaParam = leagueId && leagueId !== "primeira-liga" ? `?liga=${leagueId}` : "";
+
   return (
     <div className="card overflow-hidden">
       <table className="w-full text-sm">
@@ -60,22 +131,31 @@ export function StandingsTable({
           </tr>
         </thead>
         <tbody>
-          {standings.map((row) => {
+          {rows.map((row) => {
             const slug = clubMetaForTeamName(row.team.name).slug;
             const highlighted = highlightTeamId === row.team.id;
             return (
               <tr
-                key={row.team.id}
+                key={`${row.team.id}-${row.position}`}
                 className={`border-b border-neutral-100 last:border-0 dark:border-neutral-800/60 ${
                   highlighted ? "bg-pitch-50 dark:bg-pitch-950/40" : ""
                 }`}
               >
-                <td className={`border-l-[3px] py-2 pl-3 font-semibold tabular-nums text-neutral-500 ${zone(row.position, total)}`}>
+                <td
+                  className={`border-l-[3px] py-2 pl-3 font-semibold tabular-nums text-neutral-500 ${zone(
+                    row.position,
+                    total,
+                    continental
+                  )}`}
+                >
                   {row.position}
                 </td>
                 <td className="py-2">
                   {linkClubs ? (
-                    <Link href={`/${locale}/clube/${slug}`} className="flex items-center gap-2 hover:underline">
+                    <Link
+                      href={`/${locale}/clube/${slug}${ligaParam}`}
+                      className="flex items-center gap-2 hover:underline"
+                    >
                       <Crest team={row.team} size={20} />
                       <span className="truncate font-medium">{row.team.shortName}</span>
                     </Link>
@@ -110,13 +190,23 @@ export function StandingsTable({
           })}
         </tbody>
       </table>
-      {!compact && (
+      {showLegend && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-neutral-200 px-3 py-2 text-[11px] text-neutral-500 dark:border-neutral-800">
-          <LegendDot className="bg-blue-600" label={dict.standings.championsLeague} />
-          <LegendDot className="bg-orange-500" label={dict.standings.europaLeague} />
-          <LegendDot className="bg-emerald-500" label={dict.standings.conferenceLeague} />
-          <LegendDot className="bg-amber-500" label={dict.standings.relegationPlayoff} />
-          <LegendDot className="bg-red-600" label={dict.standings.relegation} />
+          {continental ? (
+            <>
+              <LegendDot className="bg-blue-600" label={dict.standings.qualified} />
+              <LegendDot className="bg-amber-500" label={dict.standings.playoff} />
+              <LegendDot className="bg-red-600" label={dict.standings.eliminated} />
+            </>
+          ) : (
+            <>
+              <LegendDot className="bg-blue-600" label={dict.standings.championsLeague} />
+              <LegendDot className="bg-orange-500" label={dict.standings.europaLeague} />
+              <LegendDot className="bg-emerald-500" label={dict.standings.conferenceLeague} />
+              <LegendDot className="bg-amber-500" label={dict.standings.relegationPlayoff} />
+              <LegendDot className="bg-red-600" label={dict.standings.relegation} />
+            </>
+          )}
         </div>
       )}
     </div>
@@ -127,15 +217,18 @@ function FormDots({ form }: { form: string | null }) {
   if (!form) return <span className="text-neutral-400">—</span>;
   return (
     <span className="flex items-center justify-center gap-1">
-      {form.slice(0, 5).split("").map((r, i) => (
-        <span
-          key={i}
-          title={r}
-          className={`h-2.5 w-2.5 rounded-full ${
-            r === "W" ? "bg-emerald-500" : r === "D" ? "bg-neutral-400" : "bg-red-500"
-          }`}
-        />
-      ))}
+      {form
+        .slice(0, 5)
+        .split("")
+        .map((r, i) => (
+          <span
+            key={i}
+            title={r}
+            className={`h-2.5 w-2.5 rounded-full ${
+              r === "W" ? "bg-emerald-500" : r === "D" ? "bg-neutral-400" : "bg-red-500"
+            }`}
+          />
+        ))}
     </span>
   );
 }

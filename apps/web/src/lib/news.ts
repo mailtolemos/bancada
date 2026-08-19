@@ -81,7 +81,12 @@ function extractImage(item: Record<string, unknown>): string | null {
   return match?.[1] ?? null;
 }
 
-export async function getNews(opts?: { club?: string; source?: string; limit?: number }): Promise<NewsItem[]> {
+export async function getNews(opts?: {
+  club?: string;
+  teamName?: string;
+  source?: string;
+  limit?: number;
+}): Promise<NewsItem[]> {
   const all = await cached("news:all", NEWS_TTL_MS, async () => {
     if (isDemo()) return demoNews();
     const results = await Promise.all(NEWS_SOURCES.map((s) => fetchFeed(s.id)));
@@ -94,7 +99,18 @@ export async function getNews(opts?: { club?: string; source?: string; limit?: n
   });
 
   let filtered = all;
-  if (opts?.club) filtered = filtered.filter((n) => n.clubs.includes(opts.club!));
+  if (opts?.club) {
+    const byClub = filtered.filter((n) => n.clubs.includes(opts.club!));
+    if (byClub.length || !opts.teamName) {
+      filtered = byClub;
+    } else {
+      // Clube sem metadados (ex: estrangeiro): procura pelo nome no texto.
+      const needle = opts.teamName.toLowerCase();
+      filtered = filtered.filter((n) =>
+        `${n.title} ${n.snippet ?? ""}`.toLowerCase().includes(needle)
+      );
+    }
+  }
   if (opts?.source) filtered = filtered.filter((n) => n.sourceId === opts.source);
   return filtered.slice(0, opts?.limit ?? 60);
 }

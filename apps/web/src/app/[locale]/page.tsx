@@ -9,7 +9,7 @@ import {
   type Dictionary,
   type Locale,
 } from "@bancada/core";
-import { getMatches, getNews, getStandings, isDemo } from "@/lib/data";
+import { getMatches, getNews, getStandingsGroups, isDemo } from "@/lib/data";
 import { LiveMatches } from "@/components/LiveMatches";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
 import { MyClub } from "@/components/MyClub";
@@ -33,10 +33,11 @@ export default async function HomePage({
   const leagueId = liga ?? DEFAULT_LEAGUE;
   const isDefault = leagueId === DEFAULT_LEAGUE;
 
-  const [matches, standings] = await Promise.all([
+  const [matches, groups] = await Promise.all([
     getMatches(leagueId).catch(() => []),
-    getStandings(leagueId).catch(() => []),
+    getStandingsGroups(leagueId).catch(() => []),
   ]);
+  const previewGroups = groups.slice(0, 1).map((g) => ({ ...g, rows: g.rows.slice(0, 8) }));
 
   const hasLive = matches.some((m) => LIVE_STATUSES.includes(m.status));
 
@@ -108,11 +109,11 @@ export default async function HomePage({
             linkLabel={dict.home.seeAll}
           />
           <StandingsTable
-            standings={standings.slice(0, 8)}
+            groups={previewGroups}
             locale={locale}
             dict={dict}
             compact
-            linkClubs={isDefault}
+            leagueId={leagueId}
           />
         </div>
       </div>

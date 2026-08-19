@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { ListOrdered } from "lucide-react";
 import { DEFAULT_LEAGUE, getDictionary, getLeague, isLocale } from "@bancada/core";
-import { getStandings, isDemo } from "@/lib/data";
+import { getStandingsGroups, isDemo } from "@/lib/data";
 import { StandingsTable } from "@/components/StandingsTable";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";
@@ -21,22 +21,29 @@ export default async function StandingsPage({
   const { liga } = await searchParams;
   const leagueId = liga ?? DEFAULT_LEAGUE;
   const league = getLeague(leagueId);
-  const standings = await getStandings(leagueId).catch(() => []);
+  const groups = await getStandingsGroups(leagueId).catch(() => []);
 
   return (
     <div className="space-y-4">
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <LeagueSwitcher basePath={`/${locale}/classificacao`} current={leagueId} />
       <SectionHeader
-        title={`${league?.countryFlag ?? ""} ${league?.name ?? ""} — ${dict.nav.standings}`}
+        title={`${league?.countryFlag ?? ""} ${league?.name ?? ""}`}
         icon={<ListOrdered size={15} />}
       />
-      <StandingsTable
-        standings={standings}
-        locale={locale}
-        dict={dict}
-        linkClubs={leagueId === DEFAULT_LEAGUE}
-      />
+      {groups.length ? (
+        <StandingsTable
+          groups={groups}
+          locale={locale}
+          dict={dict}
+          leagueId={leagueId}
+          continental={league?.kind === "continental"}
+        />
+      ) : (
+        <p className="card px-4 py-8 text-center text-sm text-neutral-500">
+          {dict.standings.notStarted}
+        </p>
+      )}
     </div>
   );
 }

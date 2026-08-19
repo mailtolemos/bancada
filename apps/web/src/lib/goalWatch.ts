@@ -8,7 +8,7 @@
  *  2. Por um cron externo (/api/cron/goal-watch) como rede de segurança
  *     para quando não há ninguém com o site aberto.
  */
-import { clubMetaForTeamName, LIVE_STATUSES, type Match } from "@bancada/core";
+import { activeLeagues, clubMetaForTeamName, LIVE_STATUSES, type Match } from "@bancada/core";
 import { kvGet, kvLock, kvSet } from "./kv";
 import { pushConfigured, sendToClub, type PushPayload } from "./push";
 import { getMatches } from "./data";
@@ -89,18 +89,22 @@ function payloadFor(event: GoalEvent): PushPayload {
   };
 }
 
-const SNAP_KEY = "goalwatch:snapshot:primeira-liga";
+const SNAP_KEY = "goalwatch:snapshot:v2";
 const LOCK_KEY = "goalwatch:lock";
 
 /**
- * Executa um ciclo de deteção (Liga Portugal). Devolve o nº de notificações.
+ * Executa um ciclo de deteção em TODAS as competições ativas.
  * `force` ignora o throttle (usado pelo cron).
  */
 export async function runGoalWatch(force = false): Promise<{ events: number; sent: number }> {
   if (!pushConfigured()) return { events: 0, sent: 0 };
-  if (!force && !(await kvLock(LOCK_KEY, 45))) return { events: 0, sent: 0 };
+  // Throttle curto: golos devem chegar depressa, mas sem martelar as fontes.
+  if (!force && !(await kvLock(LOCK_KEY, 20))) return { events: 0, sent: 0 };
 
-  const matches = await getMatches("primeira-liga").catch(() => []);
+  const lists = await Promise.all(
+    activeLeagues().map((l) => getMatches(l.id).catch(() => [] as Match[]))
+  );
+  const matches = lists.flat();
   if (!matches.length) return { events: 0, sent: 0 };
 
   const prevRaw = await kvGet(SNAP_KEY);

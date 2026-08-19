@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
 import { DEFAULT_LEAGUE, getDictionary, getLeague, isLocale } from "@bancada/core";
-import { getScorers, isScorersDemo } from "@/lib/data";
+import { getScorers, getSeasonLabel, isScorersDemo } from "@/lib/data";
 import { Crest } from "@/components/Crest";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";
@@ -21,14 +21,17 @@ export default async function ScorersPage({
   const { liga } = await searchParams;
   const leagueId = liga ?? DEFAULT_LEAGUE;
   const league = getLeague(leagueId);
-  const scorers = await getScorers(leagueId).catch(() => []);
+  const [scorers, seasonLabel] = await Promise.all([
+    getScorers(leagueId).catch(() => []),
+    getSeasonLabel(leagueId).catch(() => null),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       {isScorersDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <LeagueSwitcher basePath={`/${locale}/marcadores`} current={leagueId} />
       <SectionHeader
-        title={`${league?.countryFlag ?? ""} ${dict.scorers.title}`}
+        title={`${league?.countryFlag ?? ""} ${dict.scorers.title}${seasonLabel ? ` · ${seasonLabel}` : ""}`}
         icon={<Trophy size={15} />}
       />
       <div className="card overflow-hidden">

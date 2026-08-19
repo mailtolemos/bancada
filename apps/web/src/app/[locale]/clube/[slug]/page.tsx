@@ -17,7 +17,7 @@ import {
   type Dictionary,
   type Locale,
 } from "@bancada/core";
-import { getMatches, getNews, getStandings, isDemo } from "@/lib/data";
+import { findTeamBySlug, getMatches, getNews, getStandingsGroups, isDemo } from "@/lib/data";
 import { getCommunity, getRumors } from "@/lib/buzz";
 import { Crest } from "@/components/Crest";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -31,24 +31,30 @@ export const dynamic = "force-dynamic";
 
 export default async function ClubPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ liga?: string }>;
 }) {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
+  const { liga } = await searchParams;
 
-  // Só dados rápidos no caminho crítico; feeds pesados chegam em streaming.
-  const [standings, matches] = await Promise.all([
-    getStandings().catch(() => []),
-    getMatches().catch(() => []),
-  ]);
+  // Procura a equipa em qualquer competição ativa (preferindo a indicada).
+  const found = await findTeamBySlug(slug, liga).catch(() => null);
+  if (!found) notFound();
 
-  const row = standings.find((r) => clubMetaForTeamName(r.team.name).slug === slug);
-  const meta = getClub(slug) ?? (row ? clubMetaForTeamName(row.team.name) : undefined);
-  if (!row || !meta) notFound();
-
+  const { league, row } = found;
   const team = row.team;
+  const meta = getClub(slug) ?? clubMetaForTeamName(team.name);
+
+  const [matches, groups] = await Promise.all([
+    getMatches(league.id).catch(() => []),
+    getStandingsGroups(league.id).catch(() => []),
+  ]);
+  // Mostra apenas o grupo onde a equipa está (relevante em MLS/UCL/grupos).
+  const teamGroup = groups.find((g) => g.rows.some((r) => r.team.id === team.id)) ?? groups[0];
 
   const links: Array<{ label: string; href: string }> = [];
   if (meta.officialSite) links.push({ label: dict.clubs.officialSite, href: meta.officialSite });
@@ -62,7 +68,6 @@ export default async function ClubPage({
     <div className="space-y-8">
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
 
-      {/* Cabeçalho do clube */}
       <div className="card overflow-hidden">
         <div className="h-2" style={{ background: meta.colors.primary }} />
         <div className="flex flex-wrap items-center gap-4 p-5">
@@ -70,7 +75,9 @@ export default async function ClubPage({
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-black tracking-tight">{team.name}</h1>
             <p className="mt-0.5 text-sm text-neutral-500">
-              {[meta.city, meta.stadium].filter(Boolean).join(" · ")}
+              {[league.countryFlag + " " + league.name, meta.city, meta.stadium]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
           </div>
           <div className="text-center">
@@ -95,7 +102,7 @@ export default async function ClubPage({
             }}
           />
           <a
-            href={`/api/calendar?team=${team.id}&name=${encodeURIComponent(team.shortName)}`}
+            href={`/api/calendar?team=${team.id}&name=${encodeURIComponent(team.shortName)}&league=${league.id}`}
             className="chip bg-neutral-200/80 text-neutral-700 transition-colors hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
           >
             <CalendarPlus size={13} aria-hidden /> {dict.clubs.addToCalendar}
@@ -118,12 +125,21 @@ export default async function ClubPage({
         <div className="space-y-8">
           <section>
             <SectionHeader title={dict.clubs.nextMatches} icon={<CalendarDays size={15} />} />
-            <LiveMatches initial={matches} locale={locale} dict={dict} filter="live" teamId={team.id} limit={2} />
+            <LiveMatches
+              initial={matches}
+              locale={locale}
+              dict={dict}
+              leagueId={league.id}
+              filter="live"
+              teamId={team.id}
+              limit={2}
+            />
             <div className="mt-2.5">
               <LiveMatches
                 initial={matches}
                 locale={locale}
                 dict={dict}
+                leagueId={league.id}
                 filter="upcoming"
                 teamId={team.id}
                 showDay
@@ -137,42 +153,46 @@ export default async function ClubPage({
               initial={matches}
               locale={locale}
               dict={dict}
+              leagueId={league.id}
               filter="finished"
               teamId={team.id}
               showDay
               limit={4}
             />
           </section>
-          <section>
-            <SectionHeader title={dict.home.standingsPreview} icon={<ListOrdered size={15} />} />
-            <StandingsTable
-              standings={standings}
-              locale={locale}
-              dict={dict}
-              compact
-              highlightTeamId={team.id}
-            />
-          </section>
+          {teamGroup && (
+            <section>
+              <SectionHeader title={dict.home.standingsPreview} icon={<ListOrdered size={15} />} />
+              <StandingsTable
+                groups={[teamGroup]}
+                locale={locale}
+                dict={dict}
+                compact
+                highlightTeamId={team.id}
+                leagueId={league.id}
+                continental={league.kind === "continental"}
+              />
+            </section>
+          )}
         </div>
 
-        {/* Conteúdo editorial em streaming — nunca bloqueia o carregamento */}
         <div className="space-y-8">
           <section>
             <SectionHeader title={dict.clubs.rumors} icon={<Flame size={15} />} />
             <Suspense fallback={<SectionSkeleton rows={3} />}>
-              <ClubRumors slug={slug} locale={locale} dict={dict} />
+              <ClubRumors slug={slug} teamName={team.shortName} locale={locale} dict={dict} />
             </Suspense>
           </section>
           <section>
             <SectionHeader title={dict.clubs.news} icon={<Newspaper size={15} />} />
             <Suspense fallback={<SectionSkeleton rows={3} />}>
-              <ClubNews slug={slug} locale={locale} dict={dict} />
+              <ClubNews slug={slug} teamName={team.shortName} locale={locale} dict={dict} />
             </Suspense>
           </section>
           <section>
             <SectionHeader title={dict.clubs.community} icon={<MessagesSquare size={15} />} />
             <Suspense fallback={<SectionSkeleton rows={3} />}>
-              <ClubCommunity slug={slug} locale={locale} dict={dict} />
+              <ClubCommunity slug={slug} teamName={team.shortName} locale={locale} dict={dict} />
             </Suspense>
           </section>
         </div>
@@ -181,8 +201,15 @@ export default async function ClubPage({
   );
 }
 
-async function ClubRumors({ slug, locale, dict }: { slug: string; locale: Locale; dict: Dictionary }) {
-  const rumors = await getRumors({ club: slug, limit: 6 }).catch(() => []);
+interface FeedProps {
+  slug: string;
+  teamName: string;
+  locale: Locale;
+  dict: Dictionary;
+}
+
+async function ClubRumors({ slug, teamName, locale, dict }: FeedProps) {
+  const rumors = await getRumors({ club: slug, teamName, limit: 6 }).catch(() => []);
   if (!rumors.length) {
     return <p className="card px-4 py-6 text-center text-sm text-neutral-500">{dict.clubs.rumorsEmpty}</p>;
   }
@@ -195,8 +222,8 @@ async function ClubRumors({ slug, locale, dict }: { slug: string; locale: Locale
   );
 }
 
-async function ClubNews({ slug, locale, dict }: { slug: string; locale: Locale; dict: Dictionary }) {
-  const news = await getNews({ club: slug, limit: 8 }).catch(() => []);
+async function ClubNews({ slug, teamName, locale, dict }: FeedProps) {
+  const news = await getNews({ club: slug, teamName, limit: 8 }).catch(() => []);
   if (!news.length) {
     return <p className="card px-4 py-6 text-center text-sm text-neutral-500">{dict.clubs.noNews}</p>;
   }
@@ -209,10 +236,12 @@ async function ClubNews({ slug, locale, dict }: { slug: string; locale: Locale; 
   );
 }
 
-async function ClubCommunity({ slug, locale, dict }: { slug: string; locale: Locale; dict: Dictionary }) {
-  const community = await getCommunity({ club: slug, limit: 6 }).catch(() => []);
+async function ClubCommunity({ slug, teamName, locale, dict }: FeedProps) {
+  const community = await getCommunity({ club: slug, teamName, limit: 6 }).catch(() => []);
   if (!community.length) {
-    return <p className="card px-4 py-6 text-center text-sm text-neutral-500">{dict.clubs.communityEmpty}</p>;
+    return (
+      <p className="card px-4 py-6 text-center text-sm text-neutral-500">{dict.clubs.communityEmpty}</p>
+    );
   }
   return (
     <div className="grid gap-2.5">

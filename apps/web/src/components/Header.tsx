@@ -4,6 +4,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { NavLinks, MobileNav } from "./NavLinks";
 import { LogoIcon, Wordmark } from "./Logo";
+import { AccountButton } from "./AccountButton";
 
 export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   return (
@@ -18,6 +19,14 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             <NavLinks locale={locale} dict={dict} />
           </nav>
           <div className="ml-auto flex items-center gap-1.5">
+            <AccountButton
+              labels={{
+                signIn: dict.common.signIn,
+                signOut: dict.common.signOut,
+                account: dict.common.account,
+                syncing: dict.common.syncing,
+              }}
+            />
             <LocaleSwitcher locale={locale} label={dict.common.language} />
             <ThemeToggle
               labels={{

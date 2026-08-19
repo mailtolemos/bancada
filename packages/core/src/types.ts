@@ -4,20 +4,28 @@
  * são normalizados para estes tipos. A UI nunca conhece o fornecedor.
  */
 
-export type LeagueId = "primeira-liga" | "premier-league" | "la-liga" | "serie-a" | "bundesliga" | "ligue-1" | "champions-league";
+/** Identificador de competição (ver `leagues.ts` para o registo). */
+export type LeagueId = string;
+
+export type CompetitionKind = "league" | "continental" | "cup";
+export type Region = "portugal" | "europa" | "uefa" | "americas" | "mundo";
 
 export interface League {
   id: LeagueId;
-  /** Código no fornecedor football-data.org, ex: "PPL" */
-  fdCode: string;
-  /** Slug no fornecedor ESPN (por omissão, sem chave), ex: "por.1" */
-  espnSlug?: string;
+  /** Código no fornecedor football-data.org, ex: "PPL" (quando existe) */
+  fdCode?: string;
+  /** Slug no fornecedor ESPN, ex: "por.1" */
+  espnSlug: string;
   /** ID no fornecedor API-Football, ex: 94 */
   afId?: number;
   name: string;
+  /** Nome curto para chips/navegação */
+  shortName: string;
   country: string;
   countryFlag: string;
-  /** Ligas ativas aparecem na navegação; as restantes ficam prontas para ativar. */
+  kind: CompetitionKind;
+  region: Region;
+  /** Competições ativas aparecem na navegação. */
   active: boolean;
 }
 
@@ -123,6 +131,12 @@ export interface MatchTeamStats {
   fouls: number | null;
   offsides: number | null;
   xg?: number | null;
+}
+
+/** Grupo/fase de uma classificação (liga simples = um grupo sem nome). */
+export interface StandingsGroup {
+  name: string | null;
+  rows: StandingRow[];
 }
 
 export interface StandingRow {

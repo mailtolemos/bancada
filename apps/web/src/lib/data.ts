@@ -1,60 +1,61 @@
 /**
  * Fachada de dados — o único módulo que as páginas/rotas conhecem.
  *
- * Fornecedores (por ordem):
- *   1. ESPN (por omissão) — grátis, sem chave: live scores, 11 inicial,
- *      eventos, estatísticas. Não-oficial → trocar por fornecedor licenciado
- *      antes do lançamento comercial.
- *   2. football-data.org — oficial; usado se DATA_PROVIDER=football-data.
+ * Fornecedores:
+ *   1. ESPN (por omissão) — grátis, sem chave, rápido (~350 ms): live scores,
+ *      11 inicial, eventos, estatísticas, marcadores. Não-oficial → trocar por
+ *      fornecedor licenciado antes do lançamento comercial.
+ *   2. football-data.org — oficial; usado com DATA_PROVIDER=football-data.
  *   3. API-Football — enriquecimento (ratings) quando há chave.
- *   4. Demo — BANCADA_DEMO=1 ou todos os fornecedores em baixo.
+ *
+ * Velocidade ao vivo: os TTL de cache adaptam-se — 10 s quando há jogos a
+ * decorrer, 3 min quando não há. A UI polla mais depressa nesses períodos.
  */
 import {
   DEFAULT_LEAGUE,
   LIVE_STATUSES,
+  activeLeagues,
+  clubMetaForTeamName,
   getLeague,
   type ApiHealth,
+  type League,
   type Match,
   type MatchDetail,
   type Scorer,
   type StandingRow,
+  type StandingsGroup,
 } from "@bancada/core";
 import { cached } from "./cache";
 import * as espn from "./providers/espn";
 import * as fd from "./providers/footballData";
 import * as af from "./providers/apiFootball";
-import {
-  demoMatchDetail,
-  demoMatches,
-  demoScorers,
-  demoStandings,
-} from "./demo";
+import { demoMatchDetail, demoMatches, demoScorers, demoStandings } from "./demo";
 
 const TTL = {
-  matchesLive: 30 * 1000, //  jogos com potencial ao vivo: 30s
-  matchesIdle: 5 * 60 * 1000, // fora de janelas de jogo: 5 min
+  live: 10 * 1000, // há jogos a decorrer → dados quase em tempo real
+  idle: 3 * 60 * 1000, // sem jogos → poupa pedidos
   standings: 10 * 60 * 1000,
   scorers: 30 * 60 * 1000,
-  matchDetail: 30 * 1000,
+  fixtures: 6 * 3600 * 1000,
 } as const;
 
 export function isDemo(): boolean {
   return process.env.BANCADA_DEMO === "1";
 }
 
-function useFootballData(): boolean {
-  return process.env.DATA_PROVIDER === "football-data" && fd.isConfigured();
+function useFootballData(league: League): boolean {
+  return process.env.DATA_PROVIDER === "football-data" && fd.isConfigured() && Boolean(league.fdCode);
 }
 
 export function health(): ApiHealth[] {
   return [
-    { provider: "espn (default)", configured: !useFootballData(), demo: isDemo() },
+    { provider: "espn (default)", configured: true, demo: isDemo() },
     { provider: "football-data.org", configured: fd.isConfigured(), demo: isDemo() },
     { provider: "API-Football", configured: af.isConfigured(), demo: isDemo() },
   ];
 }
 
-function league(leagueId?: string) {
+function league(leagueId?: string): League {
   return getLeague(leagueId ?? DEFAULT_LEAGUE) ?? getLeague(DEFAULT_LEAGUE)!;
 }
 
@@ -62,19 +63,41 @@ function dateStr(offsetDays: number): string {
   return new Date(Date.now() + offsetDays * 86400_000).toISOString().slice(0, 10);
 }
 
+/** Memória curta de "esta liga tem jogo ao vivo" para escolher o TTL. */
+const liveHint = new Map<string, number>();
+
+function ttlFor(leagueId: string): number {
+  const until = liveHint.get(leagueId) ?? 0;
+  return Date.now() < until ? TTL.live : TTL.idle;
+}
+
+function noteLive(leagueId: string, matches: Match[]): void {
+  if (matches.some((m) => LIVE_STATUSES.includes(m.status))) {
+    // mantém o modo rápido durante 10 min após a última observação ao vivo
+    liveHint.set(leagueId, Date.now() + 10 * 60 * 1000);
+  }
+}
+
+/** Há jogos a decorrer nesta competição? (usado pela UI para pollar mais rápido) */
+export function hasLiveHint(leagueId: string): boolean {
+  return Date.now() < (liveHint.get(leagueId) ?? 0);
+}
+
 /** Janela relevante: 7 dias para trás e 10 para a frente. */
 export async function getMatches(leagueId?: string): Promise<Match[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoMatches();
-  return cached(
+  const matches = await cached<Match[]>(
     `matches:${lg.id}`,
-    TTL.matchesLive,
+    ttlFor(lg.id),
     () =>
-      useFootballData()
+      useFootballData(lg)
         ? fd.getMatches(lg, { dateFrom: dateStr(-7), dateTo: dateStr(10) })
         : espn.getMatches(lg),
-    TTL.matchesIdle * 6
+    TTL.idle * 6
   ).catch(() => (lg.id === DEFAULT_LEAGUE ? demoMatches() : []));
+  noteLive(lg.id, matches);
+  return matches;
 }
 
 export async function getLiveMatches(leagueId?: string): Promise<Match[]> {
@@ -82,11 +105,19 @@ export async function getLiveMatches(leagueId?: string): Promise<Match[]> {
   return matches.filter((m) => LIVE_STATUSES.includes(m.status));
 }
 
+/** Jogos ao vivo em TODAS as competições ativas (para a home e o detetor). */
+export async function getAllLiveMatches(): Promise<Match[]> {
+  const lists = await Promise.all(
+    activeLeagues().map((l) => getMatches(l.id).catch(() => [] as Match[]))
+  );
+  return lists.flat().filter((m) => LIVE_STATUSES.includes(m.status));
+}
+
 /** Todos os jogos futuros da época (para exportação de calendário). */
 export async function getSeasonFixtures(leagueId?: string): Promise<Match[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoMatches().filter((m) => m.status === "TIMED");
-  return cached(`fixtures:${lg.id}`, 6 * 3600 * 1000, () => espn.getSeasonFixtures(lg)).catch(
+  return cached<Match[]>(`fixtures:${lg.id}`, TTL.fixtures, () => espn.getSeasonFixtures(lg)).catch(
     () => []
   );
 }
@@ -95,18 +126,17 @@ export async function getMatchDetail(id: number, leagueId?: string): Promise<Mat
   const lg = league(leagueId);
   if (isDemo()) return demoMatchDetail(id);
 
-  const base = await cached(`match:${id}`, TTL.matchDetail, () =>
-    useFootballData() ? fd.getMatch(lg, id) : espn.getMatchDetail(lg, id)
+  const base = await cached<MatchDetail>(`match:${id}`, ttlFor(lg.id), () =>
+    useFootballData(lg) ? fd.getMatch(lg, id) : espn.getMatchDetail(lg, id)
   ).catch(() => null);
-  if (!base) return demoMatchDetail(id);
+  if (!base) return isDemo() ? demoMatchDetail(id) : null;
 
-  // Enriquecimento opcional (ratings de jogadores) via API-Football.
   if (af.isConfigured() && base.richness !== "full") {
     const enrichment = await cached(
       `match:${id}:rich`,
-      TTL.matchDetail,
+      ttlFor(lg.id),
       () => af.enrichMatch(lg, base),
-      TTL.matchesIdle
+      TTL.idle
     ).catch(() => null);
     if (enrichment) {
       return {
@@ -121,15 +151,22 @@ export async function getMatchDetail(id: number, leagueId?: string): Promise<Mat
   return base;
 }
 
-export async function getStandings(leagueId?: string): Promise<StandingRow[]> {
+/** Classificação por grupos (liga simples = um grupo sem nome). */
+export async function getStandingsGroups(leagueId?: string): Promise<StandingsGroup[]> {
   const lg = league(leagueId);
-  if (isDemo()) return demoStandings();
-  return cached(`standings:${lg.id}`, TTL.standings, () =>
-    useFootballData() ? fd.getStandings(lg) : espn.getStandings(lg)
-  ).catch(() => (lg.id === DEFAULT_LEAGUE ? demoStandings() : []));
+  if (isDemo()) return [{ name: null, rows: demoStandings() }];
+  return cached<StandingsGroup[]>(`standings:${lg.id}`, TTL.standings, async () => {
+    if (useFootballData(lg)) return [{ name: null, rows: await fd.getStandings(lg) }];
+    return espn.getStandings(lg);
+  }).catch(() => (lg.id === DEFAULT_LEAGUE ? [{ name: null, rows: demoStandings() }] : []));
 }
 
-/** Marcadores reais: ESPN leaders; football-data como alternativa; demo em último caso. */
+/** Classificação achatada (compatível com vistas simples). */
+export async function getStandings(leagueId?: string): Promise<StandingRow[]> {
+  const groups = await getStandingsGroups(leagueId);
+  return groups.flatMap((g) => g.rows);
+}
+
 export function isScorersDemo(): boolean {
   return isDemo();
 }
@@ -137,15 +174,51 @@ export function isScorersDemo(): boolean {
 export async function getScorers(leagueId?: string): Promise<Scorer[]> {
   const lg = league(leagueId);
   if (isDemo()) return demoScorers();
-  return cached(`scorers:${lg.id}`, TTL.scorers, async () => {
-    if (useFootballData() && lg.id === DEFAULT_LEAGUE) return fd.getScorers(lg);
+  return cached<Scorer[]>(`scorers:${lg.id}`, TTL.scorers, async () => {
+    if (useFootballData(lg)) return fd.getScorers(lg);
     try {
       return await espn.getScorers(lg);
     } catch {
-      if (fd.isConfigured() && lg.id === DEFAULT_LEAGUE) return fd.getScorers(lg);
+      if (fd.isConfigured() && lg.fdCode) return fd.getScorers(lg);
       throw new Error("sem fornecedor de marcadores");
     }
   }).catch(() => (lg.id === DEFAULT_LEAGUE ? demoScorers() : []));
+}
+
+/** Etiqueta da época em curso, ex: "2026-27" (para mostrar na UI). */
+export async function getSeasonLabel(leagueId?: string): Promise<string | null> {
+  const lg = league(leagueId);
+  if (isDemo()) return null;
+  const year = await cached<number | null>(`season:${lg.id}`, 12 * 3600 * 1000, () =>
+    espn.getSeasonYear(lg)
+  ).catch(() => null);
+  if (!year) return null;
+  return lg.region === "americas" && lg.kind === "league" ? String(year) : `${year}-${String(year + 1).slice(2)}`;
+}
+
+/**
+ * Encontra uma equipa pelo slug em qualquer competição ativa.
+ * Procura primeiro na competição indicada, depois nas restantes.
+ */
+export async function findTeamBySlug(
+  slug: string,
+  preferredLeagueId?: string
+): Promise<{ league: League; row: StandingRow } | null> {
+  const order = [
+    ...(preferredLeagueId ? [league(preferredLeagueId)] : []),
+    league(DEFAULT_LEAGUE),
+    ...activeLeagues(),
+  ];
+  const seen = new Set<string>();
+
+  for (const lg of order) {
+    if (seen.has(lg.id)) continue;
+    seen.add(lg.id);
+    const rows = await getStandings(lg.id).catch(() => [] as StandingRow[]);
+    const row = rows.find((r) => clubMetaForTeamName(r.team.name).slug === slug);
+    if (row) return { league: lg, row };
+  }
+  return null;
 }
 
 export { getNews } from "./news";

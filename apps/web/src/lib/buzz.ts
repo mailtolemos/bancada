@@ -83,18 +83,22 @@ async function fetchGoogleNews(query: string, idPrefix: string): Promise<NewsIte
   }
 }
 
-function rumorQueryForClub(slug: string): string | null {
+function rumorQueryForClub(slug: string, fallbackName?: string): string | null {
   const club = getClub(slug);
-  if (!club) return null;
-  const name = club.aliases[0]!;
-  return `"${name}" (mercado OR transferência OR rumor OR reforço OR oficial)`;
+  const name = club?.aliases[0] ?? fallbackName;
+  if (!name) return null;
+  return `"${name}" (mercado OR transferência OR rumor OR reforço OR oficial OR transfer)`;
 }
 
-export async function getRumors(opts?: { club?: string; limit?: number }): Promise<NewsItem[]> {
+export async function getRumors(opts?: {
+  club?: string;
+  teamName?: string;
+  limit?: number;
+}): Promise<NewsItem[]> {
   const key = `rumors:${opts?.club ?? "all"}`;
   const items = await cached(key, RUMORS_TTL, async () => {
     if (opts?.club) {
-      const query = rumorQueryForClub(opts.club);
+      const query = rumorQueryForClub(opts.club, opts.teamName);
       if (!query) return [];
       const list = await fetchGoogleNews(query, `rumor:${opts.club}`);
       // Garante que o clube da página aparece na etiquetagem.
@@ -149,7 +153,11 @@ async function fetchReddit(sub: string): Promise<NewsItem[]> {
   }
 }
 
-export async function getCommunity(opts?: { club?: string; limit?: number }): Promise<NewsItem[]> {
+export async function getCommunity(opts?: {
+  club?: string;
+  teamName?: string;
+  limit?: number;
+}): Promise<NewsItem[]> {
   const key = `community:${opts?.club ?? "all"}`;
   const items = await cached(key, COMMUNITY_TTL, async () => {
     if (opts?.club) {

@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
 import { LIVE_STATUSES, type Dictionary, type Locale, type Match } from "@bancada/core";
 import { MatchCard } from "./MatchCard";
 
-const POLL_MS = 30_000;
+const POLL_LIVE_MS = 12_000; // há jogos a decorrer → quase tempo real
+const POLL_IDLE_MS = 60_000; // sem jogos → poupa bateria e pedidos
 
 export function LiveMatches({
   initial,
@@ -38,19 +39,29 @@ export function LiveMatches({
   }, [initial]);
 
   useEffect(() => {
-    // Só vale a pena polling se houver (ou puder haver) jogo ao vivo hoje.
-    const interval = setInterval(async () => {
-      if (document.hidden) return;
-      try {
-        const res = await fetch(`/api/matches?league=${leagueId}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as { matches: Match[] };
-        if (Array.isArray(data.matches) && data.matches.length) setMatches(data.matches);
-      } catch {
-        /* falha silenciosa; próxima tentativa em 30s */
+    let timer: ReturnType<typeof setTimeout>;
+
+    const tick = async () => {
+      let live = false;
+      if (!document.hidden) {
+        try {
+          const res = await fetch(`/api/matches?league=${leagueId}`);
+          if (res.ok) {
+            const data = (await res.json()) as { matches: Match[] };
+            if (Array.isArray(data.matches) && data.matches.length) {
+              setMatches(data.matches);
+              live = data.matches.some((m) => LIVE_STATUSES.includes(m.status));
+            }
+          }
+        } catch {
+          /* falha silenciosa; nova tentativa no próximo ciclo */
+        }
       }
-    }, POLL_MS);
-    return () => clearInterval(interval);
+      timer = setTimeout(tick, live ? POLL_LIVE_MS : POLL_IDLE_MS);
+    };
+
+    timer = setTimeout(tick, POLL_LIVE_MS);
+    return () => clearTimeout(timer);
   }, [leagueId]);
 
   let list = matches;

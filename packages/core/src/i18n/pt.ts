@@ -66,6 +66,11 @@ export const pt = {
     conferenceLeague: "Liga Conferência",
     relegation: "Despromoção",
     relegationPlayoff: "Play-off de despromoção",
+    qualified: "Apuramento direto",
+    playoff: "Play-off",
+    eliminated: "Eliminado",
+    leaguePhase: "Fase de liga",
+    notStarted: "Esta competição ainda não começou. Volta em breve.",
   },
   scorers: {
     title: "Melhores marcadores",
@@ -131,6 +136,10 @@ export const pt = {
     liveUpdates: "Atualização automática",
     league: "Liga",
     allLeagues: "Todas as ligas",
+    signIn: "Entrar",
+    signOut: "Sair",
+    account: "Conta",
+    syncing: "A sincronizar…",
   },
 };
 

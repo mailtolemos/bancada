@@ -50,6 +50,16 @@ export function FavoriteButton({
       /* armazenamento indisponível */
     }
     setIsFav(next);
+    // Se houver sessão iniciada, guarda também na conta (sincroniza dispositivos).
+    fetch("/api/me", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        club: next ? club.slug : null,
+        clubs: next ? [club.slug] : [],
+        merge: next,
+      }),
+    }).catch(() => {});
   }
 
   return (

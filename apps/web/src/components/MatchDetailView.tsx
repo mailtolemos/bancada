@@ -12,7 +12,7 @@ import { EventTimeline } from "./EventTimeline";
 import { LineupField } from "./LineupField";
 import { StatsBars } from "./StatsBars";
 
-const POLL_MS = 30_000;
+const POLL_MS = 12_000;
 
 export function MatchDetailView({
   initial,
