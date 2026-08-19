@@ -1,30 +1,18 @@
 "use client";
 
 /**
- * "O meu clube" — clube favorito guardado localmente (migra para conta
- * quando existir auth). Dispara evento para a home reagir de imediato.
+ * Seguir/deixar de seguir um clube. Guarda na lista de preferências
+ * (dispositivo + conta). O primeiro clube seguido é o principal.
  */
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
+import { getPrefs, isFollowing, toggleClub, PREFS_EVENT, type FavoriteClub } from "@/lib/prefs";
 
-export interface FavoriteClub {
-  slug: string;
-  teamId: number;
-  name: string;
-  /** competição onde a equipa foi encontrada (para ir buscar os jogos) */
-  leagueId?: string;
-}
+export type { FavoriteClub };
 
-const KEY = "bancada:fav-club";
-
+/** Compatibilidade: clube principal (primeiro da lista). */
 export function getFavoriteClub(): FavoriteClub | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as FavoriteClub) : null;
-  } catch {
-    return null;
-  }
+  return getPrefs().clubs[0] ?? null;
 }
 
 export function FavoriteButton({
@@ -39,35 +27,16 @@ export function FavoriteButton({
 
   useEffect(() => {
     setMounted(true);
-    setIsFav(getFavoriteClub()?.slug === club.slug);
+    const sync = () => setIsFav(isFollowing(club.slug));
+    sync();
+    window.addEventListener(PREFS_EVENT, sync);
+    return () => window.removeEventListener(PREFS_EVENT, sync);
   }, [club.slug]);
-
-  function toggle() {
-    const next = !isFav;
-    try {
-      if (next) window.localStorage.setItem(KEY, JSON.stringify(club));
-      else window.localStorage.removeItem(KEY);
-      window.dispatchEvent(new Event("bancada:fav-changed"));
-    } catch {
-      /* armazenamento indisponível */
-    }
-    setIsFav(next);
-    // Se houver sessão iniciada, guarda também na conta (sincroniza dispositivos).
-    fetch("/api/me", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        club: next ? club.slug : null,
-        clubs: next ? [club.slug] : [],
-        merge: next,
-      }),
-    }).catch(() => {});
-  }
 
   return (
     <button
       type="button"
-      onClick={toggle}
+      onClick={() => setIsFav(isFollowing(club.slug, toggleClub(club)))}
       aria-pressed={isFav}
       className={`chip transition-colors ${
         mounted && isFav

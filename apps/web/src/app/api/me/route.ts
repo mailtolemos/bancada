@@ -41,6 +41,7 @@ export async function PUT(req: NextRequest) {
     const body = (await req.json()) as {
       club?: string | null;
       clubs?: string[];
+      clubsMeta?: Array<{ slug: string; teamId: number; name: string; leagueId?: string }>;
       leagues?: string[];
       merge?: boolean;
     };
@@ -49,6 +50,7 @@ export async function PUT(req: NextRequest) {
     const profile = await saveProfile(userId, {
       club: body.club !== undefined ? body.club : undefined,
       clubs: body.merge ? [...current.clubs, ...(body.clubs ?? [])] : body.clubs,
+      clubsMeta: body.clubsMeta ?? current.clubsMeta,
       leagues: body.merge ? [...current.leagues, ...(body.leagues ?? [])] : body.leagues,
     });
     return NextResponse.json({ ok: true, profile });

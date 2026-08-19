@@ -20,7 +20,7 @@ const FAV_KEY = "bancada:fav-club";
 export function AccountButton({
   labels,
 }: {
-  labels: { signIn: string; signOut: string; account: string; syncing: string };
+  labels: { signIn: string; signOut: string; account: string; syncing: string; profile: string };
 }) {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [open, setOpen] = useState(false);
@@ -96,6 +96,12 @@ export function AccountButton({
             <p className="truncate text-sm font-semibold">{me.user?.name}</p>
             <p className="truncate text-xs text-neutral-500">{me.user?.email}</p>
           </div>
+          <a
+            href="/pt/perfil"
+            className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          >
+            <User size={14} aria-hidden /> {labels.profile}
+          </a>
           <a
             href="/api/auth/signout?callbackUrl=/"
             className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"

@@ -5,17 +5,26 @@
  */
 import { kvGet, kvSet } from "./kv";
 
+export interface FavoriteClubMeta {
+  slug: string;
+  teamId: number;
+  name: string;
+  leagueId?: string;
+}
+
 export interface UserProfile {
   /** clube favorito principal (slug) */
   club?: string | null;
   /** clubes seguidos (inclui o principal) */
   clubs: string[];
+  /** metadados dos clubes seguidos (para a UI saber liga e id de equipa) */
+  clubsMeta: FavoriteClubMeta[];
   /** competições preferidas (ids) */
   leagues: string[];
   updatedAt: string;
 }
 
-const EMPTY: UserProfile = { club: null, clubs: [], leagues: [], updatedAt: "" };
+const EMPTY: UserProfile = { club: null, clubs: [], clubsMeta: [], leagues: [], updatedAt: "" };
 
 function key(userId: string): string {
   return `user:${userId}:profile`;
@@ -29,6 +38,7 @@ export async function getProfile(userId: string): Promise<UserProfile> {
     return {
       club: parsed.club ?? null,
       clubs: Array.isArray(parsed.clubs) ? parsed.clubs.slice(0, 20) : [],
+      clubsMeta: Array.isArray(parsed.clubsMeta) ? parsed.clubsMeta.slice(0, 20) : [],
       leagues: Array.isArray(parsed.leagues) ? parsed.leagues.slice(0, 20) : [],
       updatedAt: parsed.updatedAt ?? "",
     };
@@ -45,6 +55,7 @@ export async function saveProfile(
   const next: UserProfile = {
     club: patch.club !== undefined ? patch.club : current.club,
     clubs: dedupe(patch.clubs ?? current.clubs).slice(0, 20),
+    clubsMeta: (patch.clubsMeta ?? current.clubsMeta).slice(0, 20),
     leagues: dedupe(patch.leagues ?? current.leagues).slice(0, 20),
     updatedAt: new Date().toISOString(),
   };
