@@ -112,7 +112,7 @@ export default function ClubScreen() {
         <MatchRow key={m.id} match={m} theme={theme} dict={dict} showDay />
       ))}
 
-      <SectionTitle theme={theme}>🔥 {dict.clubs.rumors}</SectionTitle>
+      <SectionTitle theme={theme}>{dict.clubs.rumors}</SectionTitle>
       {(rumorsQ.data ?? []).slice(0, 5).map((n) => (
         <NewsRow key={n.id} item={n} theme={theme} />
       ))}
@@ -125,7 +125,7 @@ export default function ClubScreen() {
         <NewsRow key={n.id} item={n} theme={theme} />
       ))}
 
-      <SectionTitle theme={theme}>💬 {dict.clubs.community}</SectionTitle>
+      <SectionTitle theme={theme}>{dict.clubs.community}</SectionTitle>
       {(communityQ.data ?? []).slice(0, 5).map((n) => (
         <NewsRow key={n.id} item={n} theme={theme} />
       ))}

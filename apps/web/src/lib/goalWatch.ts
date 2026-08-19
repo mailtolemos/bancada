@@ -66,7 +66,7 @@ function payloadFor(event: GoalEvent): PushPayload {
   const url = `/pt/jogo/${m.id}`;
   if (event.kind === "kickoff") {
     return {
-      title: `🟢 Começou: ${m.home.shortName} vs ${m.away.shortName}`,
+      title: `Começou: ${m.home.shortName} vs ${m.away.shortName}`,
       body: m.venue ?? "Apito inicial",
       url,
       tag: `kickoff-${m.id}`,
@@ -74,7 +74,7 @@ function payloadFor(event: GoalEvent): PushPayload {
   }
   if (event.kind === "fulltime") {
     return {
-      title: `⏹ Final: ${m.home.shortName} ${score} ${m.away.shortName}`,
+      title: `Final: ${m.home.shortName} ${score} ${m.away.shortName}`,
       body: "Resultado final",
       url,
       tag: `ft-${m.id}`,
@@ -82,7 +82,7 @@ function payloadFor(event: GoalEvent): PushPayload {
   }
   const scorer = event.scorer === "home" ? m.home.shortName : m.away.shortName;
   return {
-    title: `⚽ GOLO do ${scorer}!`,
+    title: `GOLO do ${scorer}!`,
     body: `${m.home.shortName} ${score} ${m.away.shortName}${m.minute != null ? ` · ${m.minute}'` : ""}`,
     url,
     tag: `goal-${m.id}-${m.score.home}-${m.score.away}`,

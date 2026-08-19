@@ -1,18 +1,5 @@
-import type { Dictionary, MatchDetail, MatchEvent } from "@bancada/core";
-
-const ICONS: Record<MatchEvent["type"], string> = {
-  GOAL: "⚽",
-  OWN_GOAL: "⚽",
-  PENALTY_GOAL: "⚽",
-  PENALTY_MISSED: "❌",
-  YELLOW: "🟨",
-  RED: "🟥",
-  SUB: "🔁",
-  VAR: "📺",
-  KICKOFF: "▶️",
-  HALFTIME: "⏸",
-  FULLTIME: "⏹",
-};
+import type { Dictionary, MatchDetail } from "@bancada/core";
+import { EventIcon } from "./icons/EventIcon";
 
 export function EventTimeline({ match, dict }: { match: MatchDetail; dict: Dictionary }) {
   const events = [...match.events].sort((a, b) => b.minute - a.minute);
@@ -26,8 +13,8 @@ export function EventTimeline({ match, dict }: { match: MatchDetail; dict: Dicti
           return (
             <li key={i} className="flex items-center gap-3 py-1.5">
               <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-              <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                {ICONS[event.type]}{" "}
+              <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                <EventIcon type={event.type} size={13} />
                 {event.type === "KICKOFF"
                   ? dict.match.kickoff
                   : event.type === "HALFTIME"
@@ -46,7 +33,7 @@ export function EventTimeline({ match, dict }: { match: MatchDetail; dict: Dicti
             <span className="w-10 shrink-0 text-xs font-bold tabular-nums text-neutral-500">
               {event.minute}'{event.extraMinute ? `+${event.extraMinute}` : ""}
             </span>
-            <span aria-hidden>{ICONS[event.type]}</span>
+            <EventIcon type={event.type} />
             <span className="min-w-0 flex-1">
               <span className="font-semibold">{event.player}</span>
               {event.assist && (

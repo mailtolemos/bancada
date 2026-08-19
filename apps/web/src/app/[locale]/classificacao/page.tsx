@@ -4,6 +4,7 @@ import { DEFAULT_LEAGUE, getDictionary, getLeague, isLocale } from "@bancada/cor
 import { getStandingsGroups, isDemo } from "@/lib/data";
 import { StandingsTable } from "@/components/StandingsTable";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
+import { CompetitionIcon } from "@/components/icons/CompetitionIcon";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";
 
 export const dynamic = "force-dynamic";
@@ -28,8 +29,8 @@ export default async function StandingsPage({
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <LeagueSwitcher basePath={`/${locale}/classificacao`} current={leagueId} />
       <SectionHeader
-        title={`${league?.countryFlag ?? ""} ${league?.name ?? ""}`}
-        icon={<ListOrdered size={15} />}
+        title={league?.name ?? ""}
+        icon={league ? <CompetitionIcon league={league} size={16} /> : <ListOrdered size={15} />}
       />
       {groups.length ? (
         <StandingsTable

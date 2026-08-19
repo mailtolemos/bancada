@@ -5,21 +5,24 @@ import { api } from "@/lib/api";
 import { useTheme, type Theme } from "@/lib/theme";
 import { useDict } from "@/lib/i18n";
 import { usePolling } from "@/lib/usePolling";
+import { Ionicons } from "@expo/vector-icons";
 import { Card, Crest, SectionTitle } from "@/components/ui";
 import type { Dictionary } from "@bancada/core";
 
-const EVENT_ICON: Record<MatchEvent["type"], string> = {
-  GOAL: "⚽",
-  OWN_GOAL: "⚽",
-  PENALTY_GOAL: "⚽",
-  PENALTY_MISSED: "❌",
-  YELLOW: "🟨",
-  RED: "🟥",
-  SUB: "🔁",
-  VAR: "📺",
-  KICKOFF: "▶️",
-  HALFTIME: "⏸",
-  FULLTIME: "⏹",
+type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
+
+const EVENT_ICON: Record<MatchEvent["type"], { name: IoniconName; color?: string }> = {
+  GOAL: { name: "football" },
+  OWN_GOAL: { name: "football", color: "#dc2626" },
+  PENALTY_GOAL: { name: "football" },
+  PENALTY_MISSED: { name: "close-circle", color: "#dc2626" },
+  YELLOW: { name: "square", color: "#f59e0b" },
+  RED: { name: "square", color: "#dc2626" },
+  SUB: { name: "swap-horizontal", color: "#3b82f6" },
+  VAR: { name: "tv-outline" },
+  KICKOFF: { name: "play", color: "#249157" },
+  HALFTIME: { name: "pause" },
+  FULLTIME: { name: "stop" },
 };
 
 export default function MatchScreen() {
@@ -191,7 +194,7 @@ function EventLine({
           marginVertical: 6,
         }}
       >
-        — {label} —
+        {label}
       </Text>
     );
   }
@@ -208,7 +211,11 @@ function EventLine({
       <Text style={{ color: theme.c.subtext, fontWeight: "700", fontSize: 12, width: 40, textAlign: isHome ? "left" : "right" }}>
         {event.minute}'{event.extraMinute ? `+${event.extraMinute}` : ""}
       </Text>
-      <Text style={{ fontSize: 13 }}>{EVENT_ICON[event.type]}</Text>
+      <Ionicons
+        name={EVENT_ICON[event.type].name}
+        size={14}
+        color={EVENT_ICON[event.type].color ?? theme.c.text}
+      />
       <Text style={{ color: theme.c.text, fontSize: 13, fontWeight: "600", flex: 1, textAlign: isHome ? "left" : "right" }} numberOfLines={1}>
         {event.player}
         {event.assist ? <Text style={{ color: theme.c.subtext }}> · {event.assist}</Text> : null}

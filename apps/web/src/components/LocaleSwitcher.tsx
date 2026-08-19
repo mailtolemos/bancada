@@ -4,12 +4,13 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@bancada/core";
+import { Flag } from "./icons/Flag";
 
-const FLAGS: Record<Locale, string> = {
-  pt: "🇵🇹",
-  en: "🇬🇧",
-  es: "🇪🇸",
-  fr: "🇫🇷",
+const FLAG_CODES: Record<Locale, string> = {
+  pt: "PT",
+  en: "GB",
+  es: "ES",
+  fr: "FR",
 };
 
 export function LocaleSwitcher({ locale, label }: { locale: Locale; label: string }) {
@@ -49,7 +50,7 @@ export function LocaleSwitcher({ locale, label }: { locale: Locale; label: strin
         aria-expanded={open}
         className="flex h-8 w-8 items-center justify-center rounded-lg text-lg leading-none transition-colors hover:bg-neutral-200/70 dark:hover:bg-neutral-800"
       >
-        <span aria-hidden>{FLAGS[locale]}</span>
+        <Flag code={FLAG_CODES[locale]} size={20} />
       </button>
 
       {open && (
@@ -63,9 +64,7 @@ export function LocaleSwitcher({ locale, label }: { locale: Locale; label: strin
                 l === locale ? "font-bold" : "text-neutral-600 dark:text-neutral-300"
               }`}
             >
-              <span aria-hidden className="text-base leading-none">
-                {FLAGS[l]}
-              </span>
+              <Flag code={FLAG_CODES[l]} size={18} />
               {LOCALE_LABELS[l]}
             </button>
           ))}

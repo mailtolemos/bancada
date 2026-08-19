@@ -22,7 +22,8 @@ export interface League {
   /** Nome curto para chips/navegação */
   shortName: string;
   country: string;
-  countryFlag: string;
+  /** Código ISO da bandeira (ex: "PT", "GB-ENG"); vazio em provas continentais. */
+  flag?: string;
   kind: CompetitionKind;
   region: Region;
   /** Competições ativas aparecem na navegação. */

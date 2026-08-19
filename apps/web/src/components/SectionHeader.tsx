@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Zap } from "lucide-react";
 import type { ReactNode } from "react";
 
 /** Cabeçalho de secção uniforme: ícone + título + link "ver tudo" opcional. */
@@ -38,7 +39,7 @@ export function SectionHeader({
 export function DemoBanner({ text }: { text: string }) {
   return (
     <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-      <span aria-hidden>⚡</span>
+      <Zap size={13} className="mt-0.5 shrink-0" aria-hidden />
       <span>{text}</span>
     </div>
   );

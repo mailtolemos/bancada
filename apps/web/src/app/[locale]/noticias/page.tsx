@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { CLUBS, NEWS_SOURCES, getDictionary, isLocale } from "@bancada/core";
 import { getNews } from "@/lib/data";
 import { getCommunity, getRumors } from "@/lib/buzz";
-import { Newspaper } from "lucide-react";
+import { Flame, MessagesSquare, Newspaper } from "lucide-react";
 import { NewsCard } from "@/components/NewsCard";
 import { SectionHeader } from "@/components/SectionHeader";
 
@@ -39,9 +39,24 @@ export default async function NewsPage({
 
       {/* Tabs: Notícias | Mercado & Rumores | Comunidade */}
       <div className="flex flex-wrap gap-1.5">
-        <TabChip href={base} active={tab === "noticias"} label={dict.news.tabNews} />
-        <TabChip href={withTab("rumores")} active={tab === "rumores"} label={`🔥 ${dict.news.tabRumors}`} />
-        <TabChip href={withTab("comunidade")} active={tab === "comunidade"} label={`💬 ${dict.news.tabCommunity}`} />
+        <TabChip
+          href={base}
+          active={tab === "noticias"}
+          label={dict.news.tabNews}
+          icon={<Newspaper size={13} aria-hidden />}
+        />
+        <TabChip
+          href={withTab("rumores")}
+          active={tab === "rumores"}
+          label={dict.news.tabRumors}
+          icon={<Flame size={13} aria-hidden />}
+        />
+        <TabChip
+          href={withTab("comunidade")}
+          active={tab === "comunidade"}
+          label={dict.news.tabCommunity}
+          icon={<MessagesSquare size={13} aria-hidden />}
+        />
       </div>
 
       {/* Filtros por fonte (só nas notícias editoriais) */}
@@ -87,16 +102,27 @@ export default async function NewsPage({
   );
 }
 
-function TabChip({ href, active, label }: { href: string; active: boolean; label: string }) {
+function TabChip({
+  href,
+  active,
+  label,
+  icon,
+}: {
+  href: string;
+  active: boolean;
+  label: string;
+  icon?: React.ReactNode;
+}) {
   return (
     <Link
       href={href}
-      className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
         active
           ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
           : "bg-neutral-200/80 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
       }`}
     >
+      {icon}
       {label}
     </Link>
   );

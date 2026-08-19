@@ -21,8 +21,8 @@ export default function NewsScreen() {
 
   const tabs: Array<{ id: Tab; label: string }> = [
     { id: "news", label: dict.news.tabNews },
-    { id: "rumors", label: `🔥 ${dict.news.tabRumors}` },
-    { id: "community", label: `💬 ${dict.news.tabCommunity}` },
+    { id: "rumors", label: dict.news.tabRumors },
+    { id: "community", label: dict.news.tabCommunity },
   ];
 
   return (

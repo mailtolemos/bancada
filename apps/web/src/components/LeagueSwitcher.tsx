@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DEFAULT_LEAGUE, leaguesByRegion } from "@bancada/core";
+import { CompetitionIcon } from "./icons/CompetitionIcon";
 
 /**
  * Seletor de competição, agrupado por região (Portugal · Europa · Ligas
@@ -30,7 +31,7 @@ export function LeagueSwitcher({ basePath, current }: { basePath: string; curren
                       : "bg-neutral-200/80 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                   }`}
                 >
-                  <span aria-hidden>{league.countryFlag}</span> {league.shortName}
+                  <CompetitionIcon league={league} size={15} /> {league.shortName}
                 </Link>
               );
             })}

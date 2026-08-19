@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       const league = getLeague(m.leagueId);
       const start = stamp(m.utcDate);
       const end = stamp(new Date(new Date(m.utcDate).getTime() + 2 * 3600_000).toISOString());
-      const summary = `⚽ ${m.home.shortName} vs ${m.away.shortName}`;
+      const summary = `${m.home.shortName} vs ${m.away.shortName}`;
       const description = league ? `${league.name} · bancada.` : "bancada.";
       return [
         "BEGIN:VEVENT",

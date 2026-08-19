@@ -37,7 +37,7 @@ export default function MatchesScreen() {
         <>
           {live.length > 0 && (
             <>
-              <SectionTitle theme={theme}>🔴 {dict.home.liveNow}</SectionTitle>
+              <SectionTitle theme={theme}>{dict.home.liveNow}</SectionTitle>
               {live.map((m) => (
                 <MatchRow key={m.id} match={m} theme={theme} dict={dict} />
               ))}

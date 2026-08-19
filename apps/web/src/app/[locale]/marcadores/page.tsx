@@ -4,6 +4,7 @@ import { DEFAULT_LEAGUE, getDictionary, getLeague, isLocale } from "@bancada/cor
 import { getScorers, getSeasonLabel, isScorersDemo } from "@/lib/data";
 import { Crest } from "@/components/Crest";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
+import { CompetitionIcon } from "@/components/icons/CompetitionIcon";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";
 
 export const dynamic = "force-dynamic";
@@ -31,8 +32,8 @@ export default async function ScorersPage({
       {isScorersDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <LeagueSwitcher basePath={`/${locale}/marcadores`} current={leagueId} />
       <SectionHeader
-        title={`${league?.countryFlag ?? ""} ${dict.scorers.title}${seasonLabel ? ` · ${seasonLabel}` : ""}`}
-        icon={<Trophy size={15} />}
+        title={`${dict.scorers.title}${seasonLabel ? ` · ${seasonLabel}` : ""}`}
+        icon={league ? <CompetitionIcon league={league} size={16} /> : <Trophy size={15} />}
       />
       <div className="card overflow-hidden">
         <table className="w-full text-sm">

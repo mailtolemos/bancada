@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { LIVE_STATUSES, type Dictionary, type Locale, type MatchDetail } from "@bancada/core";
+import { Info } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/format";
 import { Crest } from "./Crest";
 import { StatusBadge } from "./MatchCard";
@@ -105,8 +106,9 @@ export function MatchDetailView({
         </section>
       ) : (
         match.richness === "basic" && (
-          <p className="card px-4 py-4 text-xs leading-relaxed text-neutral-500">
-            ℹ️ {dict.match.needsRichProvider}
+          <p className="card flex items-start gap-2 px-4 py-4 text-xs leading-relaxed text-neutral-500">
+            <Info size={14} className="mt-0.5 shrink-0" aria-hidden />
+            {dict.match.needsRichProvider}
           </p>
         )
       )}

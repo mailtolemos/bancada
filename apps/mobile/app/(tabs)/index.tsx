@@ -42,7 +42,7 @@ export default function HomeScreen() {
       ) : (
         <>
           <SectionTitle theme={theme}>
-            {live.length ? `🔴 ${dict.home.liveNow}` : dict.home.upcoming}
+            {live.length ? dict.home.liveNow : dict.home.upcoming}
           </SectionTitle>
           {(live.length ? live : upcoming).map((m) => (
             <MatchRow key={m.id} match={m} theme={theme} dict={dict} showDay />

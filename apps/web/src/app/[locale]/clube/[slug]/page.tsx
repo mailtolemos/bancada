@@ -20,6 +20,7 @@ import {
 import { findTeamBySlug, getMatches, getNews, getStandingsGroups, isDemo } from "@/lib/data";
 import { getCommunity, getRumors } from "@/lib/buzz";
 import { Crest } from "@/components/Crest";
+import { CompetitionIcon } from "@/components/icons/CompetitionIcon";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { NotificationsButton } from "@/components/NotificationsButton";
 import { LiveMatches } from "@/components/LiveMatches";
@@ -74,10 +75,9 @@ export default async function ClubPage({
           <Crest team={team} size={64} />
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-black tracking-tight">{team.name}</h1>
-            <p className="mt-0.5 text-sm text-neutral-500">
-              {[league.countryFlag + " " + league.name, meta.city, meta.stadium]
-                .filter(Boolean)
-                .join(" · ")}
+            <p className="mt-0.5 flex items-center gap-1.5 text-sm text-neutral-500">
+              <CompetitionIcon league={league} size={15} />
+              {[league.name, meta.city, meta.stadium].filter(Boolean).join(" · ")}
             </p>
           </div>
           <div className="text-center">

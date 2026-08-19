@@ -37,7 +37,7 @@ export function LeagueChips({
                 fontSize: 12,
               }}
             >
-              {l.countryFlag} {l.name}
+              {l.shortName}
             </Text>
           </Pressable>
         );
