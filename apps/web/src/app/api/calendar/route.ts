@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { activeLeagues, getLeague, type Match } from "@bancada/core";
-import { getSeasonFixtures } from "@/lib/data";
+import { getSeasonFixtures, getTeamMatches } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -26,8 +26,9 @@ export async function GET(req: NextRequest) {
     matches = lists.flat().sort((a, b) => a.utcDate.localeCompare(b.utcDate));
     calName = "bancada. — Todas as ligas";
   } else if (teamId != null && Number.isFinite(teamId)) {
-    const fixtures = await getSeasonFixtures(leagueId);
-    matches = fixtures.filter((m) => m.home.id === teamId || m.away.id === teamId);
+    // Liga + provas europeias do clube, tudo num só calendário.
+    const { fixtures } = await getTeamMatches(teamId, leagueId);
+    matches = fixtures;
     calName = `bancada. — ${teamName || "Clube"}`;
   } else if (leagueId) {
     const league = getLeague(leagueId);

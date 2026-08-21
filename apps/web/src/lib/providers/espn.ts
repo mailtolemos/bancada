@@ -140,13 +140,32 @@ function ymd(offsetDays: number): string {
   return new Date(Date.now() + offsetDays * 86400_000).toISOString().slice(0, 10).replace(/-/g, "");
 }
 
+type EspnEvent = { id: string; date: string; status: EspnStatus; competitions: EspnCompetition[] };
+
+/** Todos os slugs ESPN da competição (principal + qualificações). */
+function slugs(league: League): string[] {
+  return [slug(league), ...(league.espnExtraSlugs ?? [])];
+}
+
 export async function getMatches(league: League): Promise<Match[]> {
-  const data = await espn<{
-    events: Array<{ id: string; date: string; status: EspnStatus; competitions: EspnCompetition[] }>;
-  }>(`${BASE}/${slug(league)}/scoreboard?dates=${ymd(-7)}-${ymd(10)}`);
-  return (data.events ?? [])
-    .map((e) => toMatch(e, league.id))
-    .filter((m): m is Match => m !== null);
+  const range = `${ymd(-7)}-${ymd(10)}`;
+  const [main, ...extras] = await Promise.all([
+    espn<{ events: EspnEvent[] }>(`${BASE}/${slug(league)}/scoreboard?dates=${range}`),
+    ...(league.espnExtraSlugs ?? []).map((s) =>
+      espn<{ events: EspnEvent[] }>(`${BASE}/${s}/scoreboard?dates=${range}`).catch(() => ({
+        events: [] as EspnEvent[],
+      }))
+    ),
+  ]);
+  const seen = new Set<string>();
+  const matches: Match[] = [];
+  for (const e of [...(main.events ?? []), ...extras.flatMap((d) => d.events ?? [])]) {
+    if (seen.has(e.id)) continue;
+    seen.add(e.id);
+    const m = toMatch(e, league.id);
+    if (m) matches.push(m);
+  }
+  return matches.sort((a, b) => a.utcDate.localeCompare(b.utcDate));
 }
 
 interface EspnStandingsResponse {
@@ -267,12 +286,12 @@ export async function getSeasonFixtures(league: League): Promise<Match[]> {
     [ymd(182), ymd(320)],
   ];
   const chunks = await Promise.all(
-    windows.map(([from, to]) =>
-      espn<{
-        events: Array<{ id: string; date: string; status: EspnStatus; competitions: EspnCompetition[] }>;
-      }>(`${BASE}/${slug(league)}/scoreboard?dates=${from}-${to}`)
-        .then((d) => d.events ?? [])
-        .catch(() => [])
+    slugs(league).flatMap((s) =>
+      windows.map(([from, to]) =>
+        espn<{ events: EspnEvent[] }>(`${BASE}/${s}/scoreboard?dates=${from}-${to}`)
+          .then((d) => d.events ?? [])
+          .catch(() => [] as EspnEvent[])
+      )
     )
   );
   const seen = new Set<string>();

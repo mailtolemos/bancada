@@ -16,6 +16,12 @@ export interface League {
   fdCode?: string;
   /** Slug no fornecedor ESPN, ex: "por.1" */
   espnSlug: string;
+  /**
+   * Slugs ESPN adicionais cujos jogos pertencem à mesma competição.
+   * A ESPN separa as rondas de qualificação europeias em slugs próprios
+   * (ex: "uefa.europa_qual"); fundimo-los para o calendário ficar completo.
+   */
+  espnExtraSlugs?: string[];
   /** ID no fornecedor API-Football, ex: 94 */
   afId?: number;
   name: string;

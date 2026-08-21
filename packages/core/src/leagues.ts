@@ -26,6 +26,7 @@ export const LEAGUES: League[] = [
   {
     id: "champions-league",
     espnSlug: "uefa.champions",
+    espnExtraSlugs: ["uefa.champions_qual"],
     fdCode: "CL",
     afId: 2,
     name: "UEFA Champions League",
@@ -38,6 +39,7 @@ export const LEAGUES: League[] = [
   {
     id: "europa-league",
     espnSlug: "uefa.europa",
+    espnExtraSlugs: ["uefa.europa_qual"],
     fdCode: "EL",
     afId: 3,
     name: "UEFA Europa League",
@@ -50,6 +52,7 @@ export const LEAGUES: League[] = [
   {
     id: "conference-league",
     espnSlug: "uefa.europa.conf",
+    espnExtraSlugs: ["uefa.europa.conf_qual"],
     afId: 848,
     name: "UEFA Conference League",
     shortName: "Conference",

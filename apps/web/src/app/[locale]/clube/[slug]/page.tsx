@@ -17,7 +17,7 @@ import {
   type Dictionary,
   type Locale,
 } from "@bancada/core";
-import { findTeamBySlug, getMatches, getNews, getStandingsGroups, isDemo } from "@/lib/data";
+import { findTeamBySlug, getNews, getStandingsGroups, getTeamMatches, isDemo } from "@/lib/data";
 import { getCommunity, getRumors } from "@/lib/buzz";
 import { Crest } from "@/components/Crest";
 import { CompetitionIcon } from "@/components/icons/CompetitionIcon";
@@ -50,10 +50,16 @@ export default async function ClubPage({
   const team = row.team;
   const meta = getClub(slug) ?? clubMetaForTeamName(team.name);
 
-  const [matches, groups] = await Promise.all([
-    getMatches(league.id).catch(() => []),
+  // Jogos da equipa em todas as competições (liga + provas europeias).
+  const [teamMatches, groups] = await Promise.all([
+    getTeamMatches(team.id, league.id).catch(() => ({ window: [], fixtures: [] })),
     getStandingsGroups(league.id).catch(() => []),
   ]);
+  const windowIds = new Set(teamMatches.window.map((m) => m.id));
+  const matches = [
+    ...teamMatches.window,
+    ...teamMatches.fixtures.filter((m) => !windowIds.has(m.id)),
+  ];
   // Mostra apenas o grupo onde a equipa está (relevante em MLS/UCL/grupos).
   const teamGroup = groups.find((g) => g.rows.some((r) => r.team.id === team.id)) ?? groups[0];
 

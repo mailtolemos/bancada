@@ -29,6 +29,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt" className={GeistSans.variable} suppressHydrationWarning>
+      <head>
+        {/* Os emblemas vêm quase todos do CDN da ESPN — poupa um handshake. */}
+        <link rel="preconnect" href="https://a.espncdn.com" />
+        <link rel="dns-prefetch" href="https://a.espncdn.com" />
+      </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>

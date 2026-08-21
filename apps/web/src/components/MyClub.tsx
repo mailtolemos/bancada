@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * "O meu clube" na home: caixa do último jogo (resultado) e caixa do próximo
- * jogo, cada uma com competição, data e adversário. Se houver jogo a decorrer,
- * ele toma o lugar do próximo.
+ * "Os meus clubes" na home: uma grelha única com a atividade de todos os
+ * clubes seguidos — jogos a decorrer primeiro, depois os próximos jogos (por
+ * data) e por fim os últimos resultados. Sem secções por clube: tudo junto.
  */
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -91,6 +91,47 @@ export function MyClub({
 
   const multiple = clubs.length > 1;
 
+  // Junta a atividade de todos os clubes numa lista única, sem duplicados
+  // (dois clubes seguidos podem defrontar-se — o jogo aparece uma vez).
+  type Item = { kind: "live" | "next" | "last"; club: FavoriteClub; match: Match };
+  const byKind: Record<Item["kind"], Item[]> = { live: [], next: [], last: [] };
+  const seen = new Set<number>();
+
+  const fallbackFor = (club: FavoriteClub) =>
+    matches.filter((m) => m.home.id === club.teamId || m.away.id === club.teamId);
+
+  const push = (kind: Item["kind"], club: FavoriteClub, match: Match | null | undefined) => {
+    if (!match || seen.has(match.id)) return;
+    seen.add(match.id);
+    byKind[kind].push({ kind, club, match });
+  };
+
+  for (const club of clubs) {
+    const summary = summaries[club.slug];
+    const fallback = fallbackFor(club);
+    const live =
+      summary?.live ?? fallback.find((m) => LIVE_STATUSES.includes(m.status)) ?? null;
+    const last =
+      summary?.last ??
+      fallback
+        .filter((m) => m.status === "FINISHED")
+        .sort((a, b) => b.utcDate.localeCompare(a.utcDate))[0] ??
+      null;
+    const next =
+      summary?.next ??
+      fallback
+        .filter((m) => m.status === "TIMED" || m.status === "SCHEDULED")
+        .sort((a, b) => a.utcDate.localeCompare(b.utcDate))[0] ??
+      null;
+    push("live", club, live);
+    push("next", club, next);
+    push("last", club, last);
+  }
+
+  byKind.next.sort((a, b) => a.match.utcDate.localeCompare(b.match.utcDate));
+  byKind.last.sort((a, b) => b.match.utcDate.localeCompare(a.match.utcDate));
+  const items = [...byKind.live, ...byKind.next, ...byKind.last];
+
   return (
     <section>
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -108,87 +149,31 @@ export function MyClub({
         </Link>
       </div>
 
-      <div className="space-y-4">
-        {clubs.map((club) => (
-          <ClubRow
-            key={club.slug}
-            club={club}
-            summary={summaries[club.slug]}
-            fallbackMatches={matches}
-            showName={multiple}
-            locale={locale}
-            dict={dict}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ClubRow({
-  club,
-  summary,
-  fallbackMatches,
-  showName,
-  locale,
-  dict,
-}: {
-  club: FavoriteClub;
-  summary: TeamSummary | undefined;
-  fallbackMatches: Match[];
-  showName: boolean;
-  locale: Locale;
-  dict: Dictionary;
-}) {
-  // Enquanto o resumo não chega, usa o que veio do servidor para não piscar.
-  const fallback = fallbackMatches.filter(
-    (m) => m.home.id === club.teamId || m.away.id === club.teamId
-  );
-  const live = summary?.live ?? fallback.find((m) => LIVE_STATUSES.includes(m.status)) ?? undefined;
-  const last =
-    summary?.last ??
-    fallback.filter((m) => m.status === "FINISHED").sort((a, b) => b.utcDate.localeCompare(a.utcDate))[0];
-  const next =
-    summary?.next ??
-    fallback
-      .filter((m) => m.status === "TIMED" || m.status === "SCHEDULED")
-      .sort((a, b) => a.utcDate.localeCompare(b.utcDate))[0];
-
-  const clubHref = `/${locale}/clube/${club.slug}${
-    club.leagueId && club.leagueId !== DEFAULT_LEAGUE ? `?liga=${club.leagueId}` : ""
-  }`;
-
-  return (
-    <div>
-      {showName && (
-        <Link
-          href={clubHref}
-          className="mb-1.5 flex w-fit items-center gap-1 text-sm font-bold hover:underline"
-        >
-          {club.name}
-          <ChevronRight size={14} className="text-neutral-400" aria-hidden />
-        </Link>
+      {items.length ? (
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map(({ kind, club, match }) => (
+            <EventBox
+              key={match.id}
+              label={
+                kind === "live"
+                  ? dict.home.liveNowShort
+                  : kind === "next"
+                    ? dict.home.nextMatch
+                    : dict.home.lastMatch
+              }
+              match={match}
+              teamId={club.teamId}
+              locale={locale}
+              dict={dict}
+              emptyText=""
+              highlight={kind === "live"}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="card px-4 py-4 text-sm text-neutral-500">{dict.home.noRecentMatch}</p>
       )}
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        <EventBox
-          label={dict.home.lastMatch}
-          match={last}
-          teamId={club.teamId}
-          locale={locale}
-          dict={dict}
-          emptyText={dict.home.noRecentMatch}
-        />
-        <EventBox
-          label={live ? dict.home.liveNowShort : dict.home.nextMatch}
-          match={live ?? next}
-          teamId={club.teamId}
-          locale={locale}
-          dict={dict}
-          emptyText={dict.home.noNextMatch}
-          highlight={Boolean(live)}
-        />
-      </div>
-    </div>
+    </section>
   );
 }
 

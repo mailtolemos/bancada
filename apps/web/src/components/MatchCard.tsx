@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { LIVE_STATUSES, type Dictionary, type Locale, type Match } from "@bancada/core";
+import { LIVE_STATUSES, getLeague, type Dictionary, type Locale, type Match } from "@bancada/core";
 import { formatTime, relativeDay } from "@/lib/format";
 import { Crest } from "./Crest";
+import { CompetitionIcon } from "./icons/CompetitionIcon";
 
 export function StatusBadge({ match, dict }: { match: Match; dict: Dictionary }) {
   if (LIVE_STATUSES.includes(match.status)) {
@@ -37,14 +38,18 @@ export function MatchCard({
   locale,
   dict,
   showDay = false,
+  showCompetition = false,
 }: {
   match: Match;
   locale: Locale;
   dict: Dictionary;
   showDay?: boolean;
+  /** Mostra o ícone da competição (útil em listas com várias provas). */
+  showCompetition?: boolean;
 }) {
   const live = LIVE_STATUSES.includes(match.status);
   const played = match.score.home != null;
+  const league = showCompetition ? getLeague(match.leagueId) : undefined;
   const ligaParam = match.leagueId !== "primeira-liga" ? `?liga=${match.leagueId}` : "";
   return (
     <Link
@@ -74,6 +79,12 @@ export function MatchCard({
         <TeamLine team={match.home} score={match.score.home} bold={winner(match) === "home"} />
         <TeamLine team={match.away} score={match.score.away} bold={winner(match) === "away"} />
       </div>
+
+      {league && (
+        <span className="shrink-0 text-neutral-400 dark:text-neutral-500" title={league.name}>
+          <CompetitionIcon league={league} size={16} />
+        </span>
+      )}
     </Link>
   );
 }

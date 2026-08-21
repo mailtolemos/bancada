@@ -45,7 +45,9 @@ export function LiveMatches({
       let live = false;
       if (!document.hidden) {
         try {
-          const res = await fetch(`/api/matches?league=${leagueId}`);
+          // Com teamId, a API agrega liga + provas europeias da equipa.
+          const teamParam = teamId != null ? `&team=${teamId}` : "";
+          const res = await fetch(`/api/matches?league=${leagueId}${teamParam}`);
           if (res.ok) {
             const data = (await res.json()) as { matches: Match[] };
             if (Array.isArray(data.matches) && data.matches.length) {
@@ -62,7 +64,7 @@ export function LiveMatches({
 
     timer = setTimeout(tick, POLL_LIVE_MS);
     return () => clearTimeout(timer);
-  }, [leagueId]);
+  }, [leagueId, teamId]);
 
   let list = matches;
   if (teamId != null) list = list.filter((m) => m.home.id === teamId || m.away.id === teamId);
@@ -78,7 +80,14 @@ export function LiveMatches({
   return (
     <div className="grid gap-2.5 sm:grid-cols-2">
       {list.map((m) => (
-        <MatchCard key={m.id} match={m} locale={locale} dict={dict} showDay={showDay} />
+        <MatchCard
+          key={m.id}
+          match={m}
+          locale={locale}
+          dict={dict}
+          showDay={showDay}
+          showCompetition={teamId != null}
+        />
       ))}
     </div>
   );

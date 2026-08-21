@@ -113,6 +113,52 @@ export async function getAllLiveMatches(): Promise<Match[]> {
   return lists.flat().filter((m) => LIVE_STATUSES.includes(m.status));
 }
 
+/**
+ * Competições onde uma equipa desta liga também pode jogar (provas europeias
+ * para clubes europeus, Libertadores para sul-americanos). Usado para agregar
+ * o calendário completo de um clube — liga + Europa.
+ */
+export function companionLeagues(leagueId?: string): League[] {
+  const lg = league(leagueId);
+  if (lg.kind === "continental") return [lg];
+  const ids =
+    lg.region === "portugal" || lg.region === "europa"
+      ? ["champions-league", "europa-league", "conference-league"]
+      : lg.region === "americas"
+        ? ["libertadores"]
+        : [];
+  const extras = ids
+    .map((id) => getLeague(id))
+    .filter((l): l is League => Boolean(l?.active) && l!.id !== lg.id);
+  return [lg, ...extras];
+}
+
+/**
+ * Todos os jogos de uma equipa em todas as competições relevantes
+ * (janela recente + época completa), sem duplicados.
+ */
+export async function getTeamMatches(
+  teamId: number,
+  leagueId?: string
+): Promise<{ window: Match[]; fixtures: Match[] }> {
+  const comps = companionLeagues(leagueId);
+  const mine = (m: Match) => m.home.id === teamId || m.away.id === teamId;
+  const dedupe = (list: Match[]) => {
+    const seen = new Set<number>();
+    return list.filter((m) => (seen.has(m.id) ? false : (seen.add(m.id), true)));
+  };
+  const [windows, fixtures] = await Promise.all([
+    Promise.all(comps.map((l) => getMatches(l.id).catch(() => [] as Match[]))),
+    Promise.all(comps.map((l) => getSeasonFixtures(l.id).catch(() => [] as Match[]))),
+  ]);
+  return {
+    window: dedupe(windows.flat().filter(mine)).sort((a, b) => a.utcDate.localeCompare(b.utcDate)),
+    fixtures: dedupe(fixtures.flat().filter(mine)).sort((a, b) =>
+      a.utcDate.localeCompare(b.utcDate)
+    ),
+  };
+}
+
 /** Todos os jogos futuros da época (para exportação de calendário). */
 export async function getSeasonFixtures(leagueId?: string): Promise<Match[]> {
   const lg = league(leagueId);

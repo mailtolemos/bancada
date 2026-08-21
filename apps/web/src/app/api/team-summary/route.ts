@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LIVE_STATUSES, type Match } from "@bancada/core";
-import { getMatches, getSeasonFixtures } from "@/lib/data";
+import { LIVE_STATUSES } from "@bancada/core";
+import { getTeamMatches } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Resumo de uma equipa para a secção "O meu clube":
- * último jogo (resultado), jogo a decorrer e próximo jogo.
- *
- * O próximo jogo vem do calendário da época completa — a janela de ±10 dias
- * usada nos live scores deixaria de fora jogos marcados mais à frente.
+ * Resumo de uma equipa para a secção "Os meus clubes":
+ * último jogo (resultado), jogo a decorrer e próximo jogo — agregando a liga
+ * do clube e as competições europeias em que possa participar (a ESPN separa
+ * as qualificações em feeds próprios; aqui já vem tudo fundido).
  */
 export async function GET(req: NextRequest) {
   const teamId = Number(req.nextUrl.searchParams.get("team"));
@@ -18,24 +17,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "team obrigatório" }, { status: 400 });
   }
 
-  const [window, fixtures] = await Promise.all([
-    getMatches(league).catch(() => [] as Match[]),
-    getSeasonFixtures(league).catch(() => [] as Match[]),
-  ]);
+  const { window, fixtures } = await getTeamMatches(teamId, league).catch(() => ({
+    window: [],
+    fixtures: [],
+  }));
 
-  const mine = (list: Match[]) =>
-    list.filter((m) => m.home.id === teamId || m.away.id === teamId);
-
-  const recent = mine(window);
-  const upcoming = mine(fixtures);
-
-  const live = recent.find((m) => LIVE_STATUSES.includes(m.status)) ?? null;
+  const live = window.find((m) => LIVE_STATUSES.includes(m.status)) ?? null;
   const last =
-    recent
+    window
       .filter((m) => m.status === "FINISHED")
       .sort((a, b) => b.utcDate.localeCompare(a.utcDate))[0] ?? null;
   const next =
-    [...upcoming, ...recent.filter((m) => m.status === "TIMED" || m.status === "SCHEDULED")]
+    [...fixtures, ...window.filter((m) => m.status === "TIMED" || m.status === "SCHEDULED")]
       .filter((m) => new Date(m.utcDate).getTime() > Date.now() - 2 * 3600_000)
       .sort((a, b) => a.utcDate.localeCompare(b.utcDate))[0] ?? null;
 

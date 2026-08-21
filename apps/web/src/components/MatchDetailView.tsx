@@ -4,8 +4,9 @@
  * Vista de jogo com atualização automática (polling leve ao endpoint interno).
  */
 import { useEffect, useState } from "react";
-import { LIVE_STATUSES, type Dictionary, type Locale, type MatchDetail } from "@bancada/core";
+import { LIVE_STATUSES, getLeague, type Dictionary, type Locale, type MatchDetail } from "@bancada/core";
 import { Info } from "lucide-react";
+import { CompetitionIcon } from "./icons/CompetitionIcon";
 import { formatDate, formatTime } from "@/lib/format";
 import { Crest } from "./Crest";
 import { StatusBadge } from "./MatchCard";
@@ -49,6 +50,12 @@ export function MatchDetailView({
     <div className="space-y-6">
       {/* Cabeçalho / placar */}
       <div className="card px-4 py-6 text-center">
+        {getLeague(match.leagueId) && (
+          <p className="mb-1.5 flex items-center justify-center gap-1.5 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+            <CompetitionIcon league={getLeague(match.leagueId)!} size={14} />
+            {getLeague(match.leagueId)!.name}
+          </p>
+        )}
         <p className="mb-4 text-xs font-medium text-neutral-500">
           {formatDate(match.utcDate, locale)} · {formatTime(match.utcDate, locale)}
           {match.venue ? ` · ${match.venue}` : ""}
