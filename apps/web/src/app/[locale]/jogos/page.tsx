@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { CalendarDays, CalendarPlus, History, Radio } from "lucide-react";
 import { DEFAULT_LEAGUE, getDictionary, getLeague, isLocale } from "@bancada/core";
 import { getMatches, isDemo } from "@/lib/data";
+import { DayAgenda } from "@/components/DayAgenda";
 import { LiveMatches } from "@/components/LiveMatches";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
 import { DemoBanner, SectionHeader } from "@/components/SectionHeader";
@@ -26,6 +27,9 @@ export default async function MatchesPage({
     <div className="space-y-8">
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <LeagueSwitcher basePath={`/${locale}/jogos`} current={leagueId} />
+
+      {/* Barra de dias: que jogos há em cada dia da semana */}
+      <DayAgenda locale={locale} dict={dict} />
 
       {/* Exportar calendário: liga atual ou todas */}
       <div className="-mt-4 flex flex-wrap gap-1.5">

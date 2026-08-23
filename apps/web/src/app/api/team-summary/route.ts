@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LIVE_STATUSES } from "@bancada/core";
 import { getTeamMatches } from "@/lib/data";
+import { triggerGoalWatch } from "@/lib/goalWatch";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ export async function GET(req: NextRequest) {
   if (!Number.isFinite(teamId)) {
     return NextResponse.json({ error: "team obrigatório" }, { status: 400 });
   }
+  // Este endpoint é pollado pela home — aproveita para alimentar o detetor.
+  triggerGoalWatch();
 
   const { window, fixtures } = await getTeamMatches(teamId, league).catch(() => ({
     window: [],

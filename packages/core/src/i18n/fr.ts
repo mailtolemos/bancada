@@ -12,6 +12,7 @@ export const fr: Dictionary = {
     news: "Actualités",
   },
   home: {
+    noMatchesDay: "Pas de matchs ce jour-là.",
     liveNow: "En direct",
     today: "Matchs du jour",
     upcoming: "Prochains matchs",
@@ -30,6 +31,7 @@ export const fr: Dictionary = {
     noNextMatch: "Pas de prochain match programmé.",
   },
   match: {
+    teamNews: "Actualités des équipes",
     kickoff: "Coup d'envoi",
     halftime: "Mi-temps",
     fulltime: "Fin du match",
@@ -142,6 +144,7 @@ export const fr: Dictionary = {
     tabCommunity: "Communauté",
   },
   common: {
+    close: "Fermer",
     loading: "Chargement…",
     error: "Une erreur est survenue. Veuillez réessayer.",
     demoBadge: "Mode démo",

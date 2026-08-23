@@ -10,6 +10,7 @@ export const pt = {
     news: "Notícias",
   },
   home: {
+    noMatchesDay: "Sem jogos neste dia.",
     liveNow: "A decorrer",
     today: "Jogos de hoje",
     upcoming: "Próximos jogos",
@@ -28,6 +29,7 @@ export const pt = {
     noNextMatch: "Sem próximo jogo agendado.",
   },
   match: {
+    teamNews: "Notícias das equipas",
     kickoff: "Apito inicial",
     halftime: "Intervalo",
     fulltime: "Final",
@@ -140,6 +142,7 @@ export const pt = {
     tabCommunity: "Comunidade",
   },
   common: {
+    close: "Fechar",
     loading: "A carregar…",
     error: "Algo correu mal. Tenta novamente.",
     demoBadge: "Modo demonstração",

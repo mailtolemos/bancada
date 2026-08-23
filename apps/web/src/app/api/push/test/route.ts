@@ -23,12 +23,16 @@ export async function GET(req: NextRequest) {
   }
 
   const subscribers = (await kvSMembers(`push:club:${club}`)).length;
-  const sent = await sendToClub(club, {
-    title: "Teste da bancada.",
-    body: "As notificações de golos estão a funcionar.",
-    url: `/pt/clube/${club}`,
-    tag: "teste",
-  });
+  // dry=1: só diagnóstico, não envia nada.
+  const dry = req.nextUrl.searchParams.get("dry") === "1";
+  const sent = dry
+    ? 0
+    : await sendToClub(club, {
+        title: "Teste da bancada.",
+        body: "As notificações de golos estão a funcionar.",
+        url: `/pt/clube/${club}`,
+        tag: "teste",
+      });
 
   return NextResponse.json({
     ok: true,

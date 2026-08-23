@@ -14,22 +14,37 @@ import { pushConfigured, sendToClub, type PushPayload } from "./push";
 import { getMatches } from "./data";
 
 interface Snapshot {
-  [matchId: string]: { h: number | null; a: number | null; status: string };
+  [matchId: string]: {
+    h: number | null;
+    a: number | null;
+    status: string;
+    /** já enviámos o alerta de pré-jogo ("começa daqui a pouco") */
+    p?: 1;
+  };
 }
 
 export interface GoalEvent {
-  kind: "kickoff" | "goal" | "fulltime";
+  kind: "prematch" | "kickoff" | "goal" | "fulltime";
   match: Match;
   /** para golos: qual equipa marcou ("home" | "away") */
   scorer?: "home" | "away";
 }
 
+/** Janela do alerta de pré-jogo: até 40 min antes do apito inicial. */
+const PREMATCH_MS = 40 * 60 * 1000;
+
 /** Puro e testável: diferenças entre snapshot anterior e jogos atuais. */
-export function detectEvents(prev: Snapshot, matches: Match[]): GoalEvent[] {
+export function detectEvents(prev: Snapshot, matches: Match[], now = Date.now()): GoalEvent[] {
   const events: GoalEvent[] = [];
   for (const m of matches) {
     const before = prev[String(m.id)];
     const live = LIVE_STATUSES.includes(m.status);
+
+    // Pré-jogo: avisa uma única vez quando falta pouco para começar.
+    if ((m.status === "TIMED" || m.status === "SCHEDULED") && !before?.p) {
+      const delta = new Date(m.utcDate).getTime() - now;
+      if (delta > 0 && delta <= PREMATCH_MS) events.push({ kind: "prematch", match: m });
+    }
 
     if (!before) {
       // Primeira observação: só notifica se acabou de começar.
@@ -52,10 +67,14 @@ export function detectEvents(prev: Snapshot, matches: Match[]): GoalEvent[] {
   return events;
 }
 
-function toSnapshot(matches: Match[]): Snapshot {
+function toSnapshot(matches: Match[], prev: Snapshot = {}, events: GoalEvent[] = []): Snapshot {
+  const notified = new Set(events.filter((e) => e.kind === "prematch").map((e) => e.match.id));
   const snap: Snapshot = {};
   for (const m of matches) {
-    snap[String(m.id)] = { h: m.score.home, a: m.score.away, status: m.status };
+    const key = String(m.id);
+    snap[key] = { h: m.score.home, a: m.score.away, status: m.status };
+    // Mantém a marca de pré-jogo já enviado (ou acabado de enviar).
+    if (prev[key]?.p || notified.has(m.id)) snap[key].p = 1;
   }
   return snap;
 }
@@ -64,6 +83,19 @@ function payloadFor(event: GoalEvent): PushPayload {
   const m = event.match;
   const score = m.score.home != null ? `${m.score.home}–${m.score.away}` : "";
   const url = `/pt/jogo/${m.id}`;
+  if (event.kind === "prematch") {
+    const hora = new Date(m.utcDate).toLocaleTimeString("pt-PT", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Europe/Lisbon",
+    });
+    return {
+      title: `Daqui a pouco: ${m.home.shortName} vs ${m.away.shortName}`,
+      body: `Começa às ${hora}${m.venue ? ` · ${m.venue}` : ""}`,
+      url,
+      tag: `pre-${m.id}`,
+    };
+  }
   if (event.kind === "kickoff") {
     return {
       title: `Começou: ${m.home.shortName} vs ${m.away.shortName}`,
@@ -112,7 +144,7 @@ export async function runGoalWatch(force = false): Promise<{ events: number; sen
   const events = prevRaw ? detectEvents(prev, matches) : [];
 
   // Guarda o snapshot novo antes de enviar (evita duplicados em corridas).
-  await kvSet(SNAP_KEY, JSON.stringify(toSnapshot(matches)), 24 * 3600);
+  await kvSet(SNAP_KEY, JSON.stringify(toSnapshot(matches, prev, events)), 24 * 3600);
 
   let sent = 0;
   for (const event of events) {

@@ -61,6 +61,31 @@ check("sem kickoff tardio", ev.length === 0);
 ev = detectEvents({}, [{ ...base, minute: 2, score: { home: 0, away: 0 } }]);
 check("kickoff cedo", ev.length === 1 && ev[0]!.kind === "kickoff");
 
+// 9. Pré-jogo: falta meia hora → alerta uma vez
+const NOW = Date.parse("2026-08-21T18:00:00Z");
+const upcoming: Match = {
+  ...base,
+  id: 2,
+  status: "TIMED",
+  minute: null,
+  utcDate: "2026-08-21T18:30:00.000Z",
+  score: { home: null, away: null },
+};
+let pre = detectEvents({}, [upcoming], NOW);
+check("pré-jogo a 30 min", pre.length === 1 && pre[0]!.kind === "prematch");
+
+// 10. Pré-jogo já notificado (marca p) → não repete
+pre = detectEvents({ "2": { h: null, a: null, status: "TIMED", p: 1 } }, [upcoming], NOW);
+check("pré-jogo não repete", pre.length === 0);
+
+// 11. Falta mais de 40 min → ainda não avisa
+pre = detectEvents({}, [{ ...upcoming, utcDate: "2026-08-21T19:00:00.000Z" }], NOW);
+check("pré-jogo cedo demais", pre.length === 0);
+
+// 12. Jogo já passou da hora (atrasado) → sem alerta pré-jogo
+pre = detectEvents({}, [{ ...upcoming, utcDate: "2026-08-21T17:50:00.000Z" }], NOW);
+check("pré-jogo não avisa depois da hora", pre.length === 0);
+
 if (failures) {
   console.error(`${failures} testes falharam`);
   process.exit(1);

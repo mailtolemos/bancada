@@ -10,6 +10,7 @@ import {
   type Locale,
 } from "@bancada/core";
 import { getMatches, getNews, getStandingsGroups, isDemo } from "@/lib/data";
+import { DayAgenda } from "@/components/DayAgenda";
 import { LiveMatches } from "@/components/LiveMatches";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
 import { MyClub } from "@/components/MyClub";
@@ -45,6 +46,9 @@ export default async function HomePage({
     <div className="space-y-8">
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
       <LeagueSwitcher basePath={`/${locale}`} current={leagueId} />
+
+      {/* Barra de dias: que jogos há em cada dia da semana */}
+      <DayAgenda locale={locale} dict={dict} />
 
       {/* O meu clube (favorito guardado no dispositivo/conta) */}
       <MyClub matches={matches} locale={locale} dict={dict} />
