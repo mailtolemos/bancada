@@ -86,6 +86,8 @@ export interface PushPayload {
   body: string;
   url?: string;
   tag?: string;
+  /** imagem grande (Android/desktop; o iOS ignora) */
+  image?: string | null;
 }
 
 /** Envia a todos os subscritores de um clube; limpa subscrições mortas. */

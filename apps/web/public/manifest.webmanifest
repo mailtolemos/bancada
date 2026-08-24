@@ -1,5 +1,5 @@
 {
-  "name": "bancada. — Todo o futebol. Num só lugar.",
+  "name": "bancada.",
   "short_name": "bancada.",
   "description": "Resultados ao vivo, classificações, rumores e notícias do futebol português e europeu.",
   "start_url": "/pt",
@@ -9,8 +9,21 @@
   "theme_color": "#0a0a0a",
   "lang": "pt",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

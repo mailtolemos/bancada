@@ -62,12 +62,17 @@ export function pickNewsToSend(
 }
 
 function payloadFor(item: NewsItem): PushPayload {
+  // O corpo aproveita o resumo (o preview do iOS mostra pouco texto — que
+  // seja útil); a fonte fica no fim.
+  const snippet = (item.snippet ?? "").trim();
+  const body = snippet ? `${snippet.slice(0, 140)}${snippet.length > 140 ? "…" : ""}` : item.source;
   return {
     title: item.title,
-    body: item.source,
+    body,
     // O clique abre o artigo original.
     url: item.link,
     tag: `news-${item.id}`,
+    image: item.image ?? null,
   };
 }
 
