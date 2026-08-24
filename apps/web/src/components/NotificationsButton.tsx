@@ -2,13 +2,20 @@
 
 /**
  * Notificações de golos por clube (Web Push).
- * No iPhone (iOS 16.4+) só funciona com o site instalado no ecrã principal —
- * quando detetamos Safari iOS fora de standalone, mostramos a instrução.
+ *
+ * Cuidados que importam aqui:
+ *  - No iPhone (iOS 16.4+) só funciona com o site instalado no ecrã principal.
+ *  - O Safari exige que Notification.requestPermission() seja chamado DENTRO
+ *    do gesto do utilizador — por isso é a primeira coisa no clique, antes de
+ *    qualquer pedido de rede.
+ *  - A chave VAPID e o registo do service worker são pré-carregados no mount
+ *    para o clique ficar o mais curto possível.
+ *  - Erros nunca são silenciosos: o botão mostra "tentar de novo".
  */
-import { useEffect, useState } from "react";
-import { Bell, BellRing } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bell, BellRing, TriangleAlert } from "lucide-react";
 
-type State = "idle" | "unsupported" | "ios-needs-install" | "denied" | "on" | "busy";
+type State = "idle" | "unsupported" | "ios-needs-install" | "denied" | "on" | "busy" | "error";
 
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -24,9 +31,10 @@ export function NotificationsButton({
   labels,
 }: {
   club: string;
-  labels: { enable: string; enabled: string; iosHint: string; denied: string };
+  labels: { enable: string; enabled: string; iosHint: string; denied: string; error: string };
 }) {
   const [state, setState] = useState<State>("idle");
+  const vapidKey = useRef<string | null>(null);
 
   useEffect(() => {
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -46,57 +54,87 @@ export function NotificationsButton({
       setState("denied");
       return;
     }
-    // Já subscrito a este clube?
-    navigator.serviceWorker.register("/sw.js").then(async (reg) => {
-      const sub = await reg.pushManager.getSubscription();
-      const saved = localStorage.getItem(`bancada:push:${club}`);
-      setState(sub && saved ? "on" : "idle");
-    });
+
+    // Pré-carrega tudo o que o clique vai precisar.
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(async (reg) => {
+        const sub = await reg.pushManager.getSubscription();
+        const saved = localStorage.getItem(`bancada:push:${club}`);
+        setState(sub && saved ? "on" : "idle");
+      })
+      .catch(() => setState("idle"));
+    fetch("/api/push/key")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { key?: string } | null) => {
+        if (data?.key) vapidKey.current = data.key;
+      })
+      .catch(() => {});
   }, [club]);
 
   async function toggle() {
     if (state === "busy") return;
+    const wasOn = state === "on";
     try {
-      setState("busy");
-      const reg = await navigator.serviceWorker.register("/sw.js");
-      const existing = await reg.pushManager.getSubscription();
-
-      if (localStorage.getItem(`bancada:push:${club}`) && existing) {
-        // desligar este clube
-        await fetch("/api/push/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "unsubscribe", endpoint: existing.endpoint, clubs: [club] }),
-        });
+      if (wasOn) {
+        // Desligar este clube.
+        setState("busy");
+        const reg = await navigator.serviceWorker.ready;
+        const existing = await reg.pushManager.getSubscription();
+        if (existing) {
+          await fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "unsubscribe", endpoint: existing.endpoint, clubs: [club] }),
+          });
+        }
         localStorage.removeItem(`bancada:push:${club}`);
         setState("idle");
         return;
       }
 
+      // 1) Permissão PRIMEIRO, ainda dentro do gesto (obrigatório no Safari).
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        setState("denied");
+        setState(permission === "denied" ? "denied" : "idle");
         return;
       }
-      const keyRes = await fetch("/api/push/key");
-      if (!keyRes.ok) throw new Error("push não configurado");
-      const { key } = (await keyRes.json()) as { key: string };
-      const sub =
-        existing ??
-        (await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(key),
-        }));
+      setState("busy");
+
+      // 2) Service worker ativo.
+      const reg = await navigator.serviceWorker.ready;
+
+      // 3) Chave VAPID (normalmente já pré-carregada).
+      if (!vapidKey.current) {
+        const keyRes = await fetch("/api/push/key");
+        if (!keyRes.ok) throw new Error("push não configurado");
+        vapidKey.current = ((await keyRes.json()) as { key: string }).key;
+      }
+      const serverKey = urlBase64ToUint8Array(vapidKey.current);
+
+      // 4) Subscrição — se existir uma antiga com outra chave, refaz do zero.
+      let sub: PushSubscription;
+      try {
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: serverKey });
+      } catch {
+        // InvalidStateError: havia uma subscrição com chave diferente.
+        const old = await reg.pushManager.getSubscription();
+        if (old) await old.unsubscribe().catch(() => {});
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: serverKey });
+      }
+
+      // 5) Regista no servidor.
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subscription: sub.toJSON(), clubs: [club] }),
       });
-      if (!res.ok) throw new Error("falha na subscrição");
+      if (!res.ok) throw new Error(`subscrição falhou (${res.status})`);
       localStorage.setItem(`bancada:push:${club}`, "1");
       setState("on");
     } catch {
-      setState("idle");
+      // Nunca falhar em silêncio: o utilizador vê e pode repetir.
+      setState("error");
     }
   }
 
@@ -118,6 +156,18 @@ export function NotificationsButton({
     );
   }
 
+  if (state === "error") {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        className="chip bg-amber-500/15 text-amber-700 ring-1 ring-amber-500/40 transition-colors hover:bg-amber-500/25 dark:text-amber-300"
+      >
+        <TriangleAlert size={13} aria-hidden /> {labels.error}
+      </button>
+    );
+  }
+
   const on = state === "on";
   return (
     <button
@@ -131,7 +181,7 @@ export function NotificationsButton({
       }`}
     >
       {on ? <BellRing size={13} aria-hidden /> : <Bell size={13} aria-hidden />}
-      {on ? labels.enabled : labels.enable}
+      {state === "busy" ? "…" : on ? labels.enabled : labels.enable}
     </button>
   );
 }

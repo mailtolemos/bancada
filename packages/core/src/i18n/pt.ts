@@ -10,6 +10,7 @@ export const pt = {
     news: "Notícias",
   },
   home: {
+    myMatches: "Os meus jogos",
     noMatchesDay: "Sem jogos neste dia.",
     liveNow: "A decorrer",
     today: "Jogos de hoje",
@@ -89,6 +90,7 @@ export const pt = {
     matches: "Jogos",
   },
   clubs: {
+    notifyError: "Não foi possível ativar — toca para tentar de novo",
     title: "Clubes",
     officialSite: "Site oficial",
     news: "Notícias do clube",

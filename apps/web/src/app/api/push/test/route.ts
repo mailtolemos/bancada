@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getClub } from "@bancada/core";
 import { kvConfigured, kvSMembers, kvVarScheme } from "@/lib/kv";
 import { pushConfigured, sendToClub } from "@/lib/push";
 
@@ -18,7 +17,7 @@ export async function GET(req: NextRequest) {
   }
 
   const club = req.nextUrl.searchParams.get("club") ?? "";
-  if (!getClub(club)) {
+  if (!/^[a-z0-9][a-z0-9-]{1,48}$/.test(club)) {
     return NextResponse.json({ error: "clube inválido — usa ?club=benfica" }, { status: 400 });
   }
 

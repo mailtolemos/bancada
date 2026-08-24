@@ -12,6 +12,7 @@ export const es: Dictionary = {
     news: "Noticias",
   },
   home: {
+    myMatches: "Mis partidos",
     noMatchesDay: "No hay partidos este día.",
     liveNow: "En directo",
     today: "Partidos de hoy",
@@ -91,6 +92,7 @@ export const es: Dictionary = {
     matches: "Partidos",
   },
   clubs: {
+    notifyError: "No se pudo activar — toca para reintentar",
     title: "Clubes",
     officialSite: "Sitio oficial",
     news: "Noticias del club",

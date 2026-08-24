@@ -113,6 +113,38 @@ export async function getAllLiveMatches(): Promise<Match[]> {
   return lists.flat().filter((m) => LIVE_STATUSES.includes(m.status));
 }
 
+const agendaDayFmt = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Lisbon",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/**
+ * Todos os jogos de um dia (hora de Portugal) em todas as competições ativas,
+ * sem duplicados e ordenados por hora. Alimenta a barra de dias e a página
+ * de jogos estilo agenda.
+ */
+export async function getAgendaMatches(date: string): Promise<Match[]> {
+  const lists = await Promise.all(
+    activeLeagues().map((l) => getMatches(l.id).catch(() => [] as Match[]))
+  );
+  const seen = new Set<number>();
+  return lists
+    .flat()
+    .filter((m) => {
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      return agendaDayFmt.format(new Date(m.utcDate)) === date;
+    })
+    .sort((a, b) => a.utcDate.localeCompare(b.utcDate));
+}
+
+/** A chave de dia (AAAA-MM-DD) de "agora", na hora de Portugal. */
+export function todayKey(): string {
+  return agendaDayFmt.format(new Date());
+}
+
 /**
  * Competições onde uma equipa desta liga também pode jogar (provas europeias
  * para clubes europeus, Libertadores para sul-americanos). Usado para agregar

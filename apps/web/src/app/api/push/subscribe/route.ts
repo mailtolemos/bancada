@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getClub } from "@bancada/core";
 import { subscribe, unsubscribe, type StoredSubscription } from "@/lib/push";
+
+/**
+ * Qualquer clube pode ser subscrito — o slug vem de clubMetaForTeamName e
+ * inclui clubes estrangeiros sem metadados PT. Validamos só o formato.
+ * (O bug antigo — aceitar apenas clubes com metadados — fazia o botão
+ * "Receber golos" falhar em silêncio na maioria das páginas de clube.)
+ */
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,48}$/;
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const clubs = (body.clubs ?? []).filter((slug) => Boolean(getClub(slug))).slice(0, 5);
+  const clubs = (body.clubs ?? []).filter((slug) => SLUG_RE.test(slug)).slice(0, 10);
 
   if (body.action === "unsubscribe") {
     const endpoint = body.endpoint ?? body.subscription?.endpoint;

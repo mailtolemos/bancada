@@ -105,6 +105,7 @@ export default async function ClubPage({
               enabled: dict.clubs.notifyEnabled,
               iosHint: dict.clubs.notifyIosHint,
               denied: dict.clubs.notifyDenied,
+              error: dict.clubs.notifyError,
             }}
           />
           <a

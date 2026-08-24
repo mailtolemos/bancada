@@ -12,6 +12,7 @@ export const en: Dictionary = {
     news: "News",
   },
   home: {
+    myMatches: "My matches",
     noMatchesDay: "No matches on this day.",
     liveNow: "Live now",
     today: "Today's matches",
@@ -91,6 +92,7 @@ export const en: Dictionary = {
     matches: "Matches",
   },
   clubs: {
+    notifyError: "Could not enable — tap to retry",
     title: "Clubs",
     officialSite: "Official site",
     news: "Club news",
