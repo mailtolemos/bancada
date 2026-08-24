@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { kvConfigured, kvSMembers, kvVarScheme } from "@/lib/kv";
-import { pushConfigured, sendToClub } from "@/lib/push";
+import { pushConfigured, sendToClub, type PushTopic } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
 
@@ -21,21 +21,31 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "clube inválido — usa ?club=benfica" }, { status: 400 });
   }
 
-  const subscribers = (await kvSMembers(`push:club:${club}`)).length;
+  const topic: PushTopic = req.nextUrl.searchParams.get("topic") === "news" ? "news" : "goals";
+  const setKey = topic === "news" ? `push:news:${club}` : `push:club:${club}`;
+  const subscribers = (await kvSMembers(setKey)).length;
   // dry=1: só diagnóstico, não envia nada.
   const dry = req.nextUrl.searchParams.get("dry") === "1";
   const sent = dry
     ? 0
-    : await sendToClub(club, {
-        title: "Teste da bancada.",
-        body: "As notificações de golos estão a funcionar.",
-        url: `/pt/clube/${club}`,
-        tag: "teste",
-      });
+    : await sendToClub(
+        club,
+        {
+          title: "Teste da bancada.",
+          body:
+            topic === "news"
+              ? "As notificações de notícias estão a funcionar."
+              : "As notificações de golos estão a funcionar.",
+          url: `/pt/clube/${club}`,
+          tag: "teste",
+        },
+        topic
+      );
 
   return NextResponse.json({
     ok: true,
     club,
+    topic,
     subscribers,
     sent,
     kvPartilhado: kvConfigured(),

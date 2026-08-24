@@ -92,6 +92,8 @@ export const en: Dictionary = {
     matches: "Matches",
   },
   clubs: {
+    notifyNewsEnable: "Get news alerts",
+    notifyNewsEnabled: "News alerts on",
     notifyError: "Could not enable — tap to retry",
     title: "Clubs",
     officialSite: "Official site",

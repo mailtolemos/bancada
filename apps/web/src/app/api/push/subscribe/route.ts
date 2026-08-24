@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { subscribe, unsubscribe, type StoredSubscription } from "@/lib/push";
+import {
+  rememberTeamName,
+  subscribe,
+  unsubscribe,
+  type PushTopic,
+  type StoredSubscription,
+} from "@/lib/push";
 
 /**
  * Qualquer clube pode ser subscrito — o slug vem de clubMetaForTeamName e
@@ -16,6 +22,10 @@ interface Body {
   endpoint?: string;
   clubs?: string[];
   action?: "subscribe" | "unsubscribe";
+  /** golos/jogo (por omissão) ou notícias */
+  topic?: PushTopic;
+  /** nome visível da equipa — ajuda o watcher de notícias a procurar */
+  teamName?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -27,11 +37,12 @@ export async function POST(req: NextRequest) {
   }
 
   const clubs = (body.clubs ?? []).filter((slug) => SLUG_RE.test(slug)).slice(0, 10);
+  const topic: PushTopic = body.topic === "news" ? "news" : "goals";
 
   if (body.action === "unsubscribe") {
     const endpoint = body.endpoint ?? body.subscription?.endpoint;
     if (!endpoint) return NextResponse.json({ error: "endpoint em falta" }, { status: 400 });
-    await unsubscribe(endpoint, clubs);
+    await unsubscribe(endpoint, clubs, topic);
     return NextResponse.json({ ok: true });
   }
 
@@ -42,6 +53,9 @@ export async function POST(req: NextRequest) {
   if (!clubs.length) {
     return NextResponse.json({ error: "escolhe pelo menos um clube" }, { status: 400 });
   }
-  await subscribe({ endpoint: sub.endpoint, keys: sub.keys }, clubs);
-  return NextResponse.json({ ok: true, clubs });
+  await subscribe({ endpoint: sub.endpoint, keys: sub.keys }, clubs, topic);
+  if (topic === "news" && typeof body.teamName === "string" && body.teamName.trim()) {
+    for (const club of clubs) await rememberTeamName(club, body.teamName.trim().slice(0, 60));
+  }
+  return NextResponse.json({ ok: true, clubs, topic });
 }

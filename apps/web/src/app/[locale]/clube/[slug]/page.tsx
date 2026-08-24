@@ -108,6 +108,18 @@ export default async function ClubPage({
               error: dict.clubs.notifyError,
             }}
           />
+          <NotificationsButton
+            club={slug}
+            topic="news"
+            teamName={team.shortName}
+            labels={{
+              enable: dict.clubs.notifyNewsEnable,
+              enabled: dict.clubs.notifyNewsEnabled,
+              iosHint: dict.clubs.notifyIosHint,
+              denied: dict.clubs.notifyDenied,
+              error: dict.clubs.notifyError,
+            }}
+          />
           <a
             href={`/api/calendar?team=${team.id}&name=${encodeURIComponent(team.shortName)}&league=${league.id}`}
             className="chip bg-neutral-200/80 text-neutral-700 transition-colors hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"

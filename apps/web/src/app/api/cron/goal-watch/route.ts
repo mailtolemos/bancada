@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runGoalWatch } from "@/lib/goalWatch";
+import { runNewsWatch } from "@/lib/newsWatch";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -15,6 +16,9 @@ export async function GET(req: NextRequest) {
   if (secret && key !== secret) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const result = await runGoalWatch(true);
-  return NextResponse.json({ ok: true, ...result });
+  const [golos, noticias] = await Promise.all([
+    runGoalWatch(true),
+    runNewsWatch().catch(() => ({ events: 0, sent: 0 })),
+  ]);
+  return NextResponse.json({ ok: true, ...golos, noticias });
 }

@@ -90,6 +90,8 @@ export const pt = {
     matches: "Jogos",
   },
   clubs: {
+    notifyNewsEnable: "Receber notícias",
+    notifyNewsEnabled: "Notícias ativas",
     notifyError: "Não foi possível ativar — toca para tentar de novo",
     title: "Clubes",
     officialSite: "Site oficial",

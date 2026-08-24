@@ -13,7 +13,7 @@
  *  - Erros nunca são silenciosos: o botão mostra "tentar de novo".
  */
 import { useEffect, useRef, useState } from "react";
-import { Bell, BellRing, TriangleAlert } from "lucide-react";
+import { Bell, BellRing, Newspaper, TriangleAlert } from "lucide-react";
 
 type State = "idle" | "unsupported" | "ios-needs-install" | "denied" | "on" | "busy" | "error";
 
@@ -29,12 +29,20 @@ function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
 export function NotificationsButton({
   club,
   labels,
+  topic = "goals",
+  teamName,
 }: {
   club: string;
   labels: { enable: string; enabled: string; iosHint: string; denied: string; error: string };
+  /** golos/jogo (por omissão) ou notícias do clube */
+  topic?: "goals" | "news";
+  /** nome visível da equipa (ajuda o watcher de notícias) */
+  teamName?: string;
 }) {
   const [state, setState] = useState<State>("idle");
   const vapidKey = useRef<string | null>(null);
+  // A chave antiga (sem tópico) continua a valer para os golos.
+  const storageKey = topic === "news" ? `bancada:push:news:${club}` : `bancada:push:${club}`;
 
   useEffect(() => {
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -60,7 +68,7 @@ export function NotificationsButton({
       .register("/sw.js")
       .then(async (reg) => {
         const sub = await reg.pushManager.getSubscription();
-        const saved = localStorage.getItem(`bancada:push:${club}`);
+        const saved = localStorage.getItem(storageKey);
         setState(sub && saved ? "on" : "idle");
       })
       .catch(() => setState("idle"));
@@ -70,7 +78,8 @@ export function NotificationsButton({
         if (data?.key) vapidKey.current = data.key;
       })
       .catch(() => {});
-  }, [club]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [club, topic]);
 
   async function toggle() {
     if (state === "busy") return;
@@ -85,10 +94,15 @@ export function NotificationsButton({
           await fetch("/api/push/subscribe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "unsubscribe", endpoint: existing.endpoint, clubs: [club] }),
+            body: JSON.stringify({
+              action: "unsubscribe",
+              endpoint: existing.endpoint,
+              clubs: [club],
+              topic,
+            }),
           });
         }
-        localStorage.removeItem(`bancada:push:${club}`);
+        localStorage.removeItem(storageKey);
         setState("idle");
         return;
       }
@@ -127,10 +141,10 @@ export function NotificationsButton({
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: sub.toJSON(), clubs: [club] }),
+        body: JSON.stringify({ subscription: sub.toJSON(), clubs: [club], topic, teamName }),
       });
       if (!res.ok) throw new Error(`subscrição falhou (${res.status})`);
-      localStorage.setItem(`bancada:push:${club}`, "1");
+      localStorage.setItem(storageKey, "1");
       setState("on");
     } catch {
       // Nunca falhar em silêncio: o utilizador vê e pode repetir.
@@ -139,6 +153,8 @@ export function NotificationsButton({
   }
 
   if (state === "unsupported") return null;
+  // O aviso de instalação/permissão já aparece no botão de golos — não repetir.
+  if (topic === "news" && (state === "ios-needs-install" || state === "denied")) return null;
 
   if (state === "ios-needs-install") {
     return (
@@ -180,7 +196,13 @@ export function NotificationsButton({
           : "bg-neutral-200/80 text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
       }`}
     >
-      {on ? <BellRing size={13} aria-hidden /> : <Bell size={13} aria-hidden />}
+      {topic === "news" ? (
+        <Newspaper size={13} aria-hidden />
+      ) : on ? (
+        <BellRing size={13} aria-hidden />
+      ) : (
+        <Bell size={13} aria-hidden />
+      )}
       {state === "busy" ? "…" : on ? labels.enabled : labels.enable}
     </button>
   );

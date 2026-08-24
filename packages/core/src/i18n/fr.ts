@@ -92,6 +92,8 @@ export const fr: Dictionary = {
     matches: "Matchs",
   },
   clubs: {
+    notifyNewsEnable: "Recevoir les actus",
+    notifyNewsEnabled: "Actus activées",
     notifyError: "Activation impossible — touche pour réessayer",
     title: "Clubs",
     officialSite: "Site officiel",

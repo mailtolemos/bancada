@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getNews } from "@/lib/news";
+import { triggerNewsWatch } from "@/lib/newsWatch";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  // O tráfego de notícias também alimenta o detetor de notícias.
+  triggerNewsWatch();
   const club = req.nextUrl.searchParams.get("club") ?? undefined;
   const source = req.nextUrl.searchParams.get("source") ?? undefined;
   try {
