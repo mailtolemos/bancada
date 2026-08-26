@@ -6,17 +6,49 @@ export function NewsCard({
   item,
   locale,
   dict,
+  featured = false,
 }: {
   item: NewsItem;
   locale: Locale;
   dict: Dictionary;
+  /** cartão grande com imagem em cima (primeira notícia de uma lista) */
+  featured?: boolean;
 }) {
   const external = item.link !== "#";
   const Wrapper = external ? "a" : "div";
+
+  if (featured && item.image) {
+    return (
+      <Wrapper
+        {...(external ? { href: item.link, target: "_blank", rel: "noopener noreferrer" } : {})}
+        className="card group relative block overflow-hidden transition-transform hover:-translate-y-0.5 hover:shadow-card-hover"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={item.image}
+          alt=""
+          className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:h-56"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" aria-hidden />
+        <div className="absolute inset-x-0 bottom-0 p-4">
+          <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+            <span className="chip bg-white/15 text-white ring-1 ring-white/20 backdrop-blur-sm">{item.source}</span>
+            <span className="font-medium text-white/70">{timeAgo(item.publishedAt, locale)}</span>
+          </div>
+          <h3 className="line-clamp-2 text-base font-extrabold leading-snug text-white sm:text-lg">
+            {item.title}
+          </h3>
+        </div>
+      </Wrapper>
+    );
+  }
+
   return (
     <Wrapper
       {...(external ? { href: item.link, target: "_blank", rel: "noopener noreferrer" } : {})}
-      className="card group flex gap-3 overflow-hidden p-3 transition-transform hover:-translate-y-0.5 hover:shadow-md"
+      className="card group flex gap-3 overflow-hidden p-3 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-card-hover"
     >
       {item.image && <NewsImage src={item.image} />}
       <div className="min-w-0 flex-1">

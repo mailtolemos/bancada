@@ -54,8 +54,8 @@ export function NavLinks({ locale, dict }: { locale: Locale; dict: Dictionary })
 export function MobileNav({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const pathname = usePathname();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200/80 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/95 md:hidden">
-      <div className="mx-auto flex max-w-md items-stretch justify-around">
+    <nav className="fixed inset-x-3 bottom-3 z-40 mb-[env(safe-area-inset-bottom)] rounded-2xl border border-neutral-200/70 bg-white/85 shadow-card-hover backdrop-blur-xl dark:border-white/[0.08] dark:bg-neutral-900/85 md:hidden">
+      <div className="mx-auto flex max-w-md items-stretch justify-around px-1">
         {items(locale, dict)
           .filter((item) => !item.desktopOnly)
           .map((item) => {
@@ -64,13 +64,19 @@ export function MobileNav({ locale, dict }: { locale: Locale; dict: Dictionary }
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium ${
+                className={`relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${
                   active
-                    ? "text-pitch-600 dark:text-pitch-400"
+                    ? "text-pitch-600 dark:text-volt-400"
                     : "text-neutral-500 dark:text-neutral-400"
                 }`}
               >
-                <item.Icon size={19} strokeWidth={active ? 2.5 : 2} aria-hidden />
+                <span
+                  className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${
+                    active ? "bg-pitch-600/10 dark:bg-volt-500/15" : ""
+                  }`}
+                >
+                  <item.Icon size={19} strokeWidth={active ? 2.5 : 2} aria-hidden />
+                </span>
                 {item.label}
               </Link>
             );

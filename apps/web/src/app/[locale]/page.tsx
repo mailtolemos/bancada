@@ -11,6 +11,7 @@ import {
 } from "@bancada/core";
 import { getMatches, getNews, getStandingsGroups, isDemo } from "@/lib/data";
 import { DayAgenda } from "@/components/DayAgenda";
+import { MatchSpotlight } from "@/components/MatchSpotlight";
 import { LiveMatches } from "@/components/LiveMatches";
 import { LeagueSwitcher } from "@/components/LeagueSwitcher";
 import { MyClub } from "@/components/MyClub";
@@ -45,6 +46,10 @@ export default async function HomePage({
   return (
     <div className="space-y-8">
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
+
+      {/* Jogo em destaque: o próximo/atual jogo do clube principal */}
+      <MatchSpotlight locale={locale} dict={dict} />
+
       <LeagueSwitcher basePath={`/${locale}`} current={leagueId} />
 
       {/* Barra de dias: que jogos há em cada dia da semana */}
@@ -130,9 +135,11 @@ async function HomeNews({ locale, dict }: { locale: Locale; dict: Dictionary }) 
   if (!news.length) {
     return <p className="card px-4 py-6 text-center text-sm text-neutral-500">{dict.news.empty}</p>;
   }
+  const [first, ...rest] = news;
   return (
     <div className="grid gap-2.5">
-      {news.map((item) => (
+      {first && <NewsCard item={first} locale={locale} dict={dict} featured />}
+      {rest.map((item) => (
         <NewsCard key={item.id} item={item} locale={locale} dict={dict} />
       ))}
     </div>

@@ -50,9 +50,9 @@ export function SectionSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="grid gap-2.5" aria-hidden>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="card animate-pulse px-4 py-4">
-          <div className="mb-2 h-3 w-24 rounded bg-neutral-200 dark:bg-neutral-800" />
-          <div className="h-4 w-3/4 rounded bg-neutral-200 dark:bg-neutral-800" />
+        <div key={i} className="card px-4 py-4">
+          <div className="skeleton mb-2 h-3 w-24" />
+          <div className="skeleton h-4 w-3/4" />
         </div>
       ))}
     </div>

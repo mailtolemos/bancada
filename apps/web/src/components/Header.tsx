@@ -10,7 +10,7 @@ import { AccountButton } from "./AccountButton";
 export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-neutral-200/70 bg-neutral-100/85 backdrop-blur-md dark:border-neutral-800/70 dark:bg-neutral-950/85">
+      <header className="sticky top-0 z-40 border-b border-neutral-200/60 bg-white/70 backdrop-blur-xl dark:border-white/[0.06] dark:bg-neutral-950/70">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
           <Link href={`/${locale}`} className="flex min-w-0 shrink items-center gap-2.5" aria-label={dict.appName}>
             <LogoIcon size={32} />

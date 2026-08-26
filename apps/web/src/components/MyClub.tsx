@@ -222,7 +222,7 @@ function EventBox({
   return (
     <Link
       href={`/${locale}/jogo/${match.id}${ligaParam}`}
-      className={`card block px-4 py-3 transition-transform hover:-translate-y-0.5 hover:shadow-md ${
+      className={`card block px-4 py-3 transition-transform hover:-translate-y-0.5 hover:shadow-card-hover ${
         highlight ? "ring-1 ring-red-500/40" : ""
       }`}
     >

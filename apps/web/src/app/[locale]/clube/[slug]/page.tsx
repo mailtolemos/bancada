@@ -75,9 +75,16 @@ export default async function ClubPage({
     <div className="space-y-8">
       {isDemo() && <DemoBanner text={dict.common.demoNotice} />}
 
-      <div className="card overflow-hidden">
-        <div className="h-2" style={{ background: meta.colors.primary }} />
-        <div className="flex flex-wrap items-center gap-4 p-5">
+      <div className="card relative overflow-hidden">
+        <div
+          className="h-2"
+          style={{ background: `linear-gradient(90deg, ${meta.colors.primary}, ${meta.colors.secondary ?? meta.colors.primary})` }}
+        />
+        {/* marca de água do emblema */}
+        <div className="pointer-events-none absolute -right-8 -top-6 opacity-[0.07] dark:opacity-[0.1]" aria-hidden>
+          <Crest team={team} size={190} />
+        </div>
+        <div className="relative flex flex-wrap items-center gap-4 p-5">
           <Crest team={team} size={64} />
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-black tracking-tight">{team.name}</h1>
