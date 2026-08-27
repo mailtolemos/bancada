@@ -1,9 +1,12 @@
 "use client";
 
 /**
- * Jogo em destaque no topo da home: o próximo (ou atual) jogo do clube
- * principal do utilizador, num cartão dramático com as cores dos clubes,
- * contagem decrescente para o apito inicial e resultado grande ao vivo.
+ * Jogo em destaque no topo da home. Escolhe o jogo mais relevante do momento:
+ *  1. jogo AO VIVO de um clube seguido;
+ *  2. jogo de hoje de um clube seguido (por começar, ou o resultado de há pouco);
+ *  3. qualquer jogo AO VIVO (competições favoritas primeiro);
+ *  4. senão, o próximo jogo do clube principal.
+ * Cartão dramático com as cores dos clubes e contagem decrescente ao segundo.
  */
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -28,13 +31,59 @@ interface TeamSummary {
   live: Match | null;
 }
 
+const dayFmt = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Lisbon",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Escolhe o jogo mais relevante de entre os de hoje + fallback do clube. */
+function pickSpotlight(
+  agenda: Match[],
+  clubs: FavoriteClub[],
+  favLeagues: string[],
+  fallback: Match | null
+): Match | null {
+  const ids = new Set(clubs.map((c) => c.teamId));
+  const mine = agenda.filter((m) => ids.has(m.home.id) || ids.has(m.away.id));
+
+  // 1. Clube seguido ao vivo.
+  const mineLive = mine.find((m) => LIVE_STATUSES.includes(m.status));
+  if (mineLive) return mineLive;
+
+  // 2. Clube seguido joga hoje: o próximo por começar, senão o resultado.
+  const mineNext = mine
+    .filter((m) => m.status === "TIMED" || m.status === "SCHEDULED")
+    .sort((a, b) => a.utcDate.localeCompare(b.utcDate))[0];
+  if (mineNext) return mineNext;
+  const mineDone = mine
+    .filter((m) => m.status === "FINISHED")
+    .sort((a, b) => b.utcDate.localeCompare(a.utcDate))[0];
+  if (mineDone) return mineDone;
+
+  // 3. Qualquer jogo ao vivo — competições favoritas primeiro.
+  const live = agenda.filter((m) => LIVE_STATUSES.includes(m.status));
+  if (live.length) {
+    const fav = live.find((m) => favLeagues.includes(m.leagueId));
+    return fav ?? live[0]!;
+  }
+
+  // 4. O próximo jogo do clube principal (pode ser daqui a dias).
+  return fallback;
+}
+
 export function MatchSpotlight({ locale, dict }: { locale: Locale; dict: Dictionary }) {
-  const [club, setClub] = useState<FavoriteClub | null>(null);
+  const [prefs, setPrefsState] = useState<{ clubs: FavoriteClub[]; leagues: string[] } | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const club = prefs?.clubs[0] ?? null;
 
   useEffect(() => {
-    const sync = () => setClub(getPrefs().clubs[0] ?? null);
+    const sync = () => {
+      const p = getPrefs();
+      setPrefsState({ clubs: p.clubs.slice(0, 5), leagues: p.leagues });
+    };
     sync();
     window.addEventListener(PREFS_EVENT, sync);
     window.addEventListener("storage", sync);
@@ -45,15 +94,27 @@ export function MatchSpotlight({ locale, dict }: { locale: Locale; dict: Diction
   }, []);
 
   useEffect(() => {
-    if (!club) return;
+    if (!prefs || !prefs.clubs.length) return;
+    const primary = prefs.clubs[0]!;
     let cancelled = false;
+
     const load = async () => {
       try {
-        const league = club.leagueId ?? DEFAULT_LEAGUE;
-        const res = await fetch(`/api/team-summary?team=${club.teamId}&league=${league}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as TeamSummary;
-        if (!cancelled) setMatch(data.live ?? data.next ?? null);
+        const today = dayFmt.format(new Date());
+        const [agendaRes, summaryRes] = await Promise.all([
+          fetch(`/api/agenda?date=${today}`).catch(() => null),
+          fetch(
+            `/api/team-summary?team=${primary.teamId}&league=${primary.leagueId ?? DEFAULT_LEAGUE}`
+          ).catch(() => null),
+        ]);
+        const agenda: Match[] =
+          agendaRes?.ok ? ((await agendaRes.json()) as { matches: Match[] }).matches ?? [] : [];
+        const summary: TeamSummary | null =
+          summaryRes?.ok ? ((await summaryRes.json()) as TeamSummary) : null;
+        const fallback = summary?.live ?? summary?.next ?? null;
+        if (!cancelled) {
+          setMatch(pickSpotlight(agenda, prefs.clubs, prefs.leagues, fallback));
+        }
       } catch {
         /* fica como está */
       }
@@ -64,7 +125,7 @@ export function MatchSpotlight({ locale, dict }: { locale: Locale; dict: Diction
       cancelled = true;
       clearInterval(timer);
     };
-  }, [club]);
+  }, [prefs]);
 
   // Relógio da contagem decrescente (só quando há jogo por começar).
   const live = match != null && LIVE_STATUSES.includes(match.status);
@@ -75,6 +136,7 @@ export function MatchSpotlight({ locale, dict }: { locale: Locale; dict: Diction
   }, [match, live]);
 
   if (!club || !match) return null;
+  const followedIds = new Set(prefs!.clubs.map((c) => c.teamId));
 
   const league = getLeague(match.leagueId);
   const homeMeta = clubMetaForTeamName(match.home.name);
@@ -118,7 +180,7 @@ export function MatchSpotlight({ locale, dict }: { locale: Locale; dict: Diction
         </div>
 
         <div className="flex items-center justify-between gap-3 sm:gap-8">
-          <TeamSide team={match.home} mine={match.home.id === club.teamId} />
+          <TeamSide team={match.home} mine={followedIds.has(match.home.id)} />
 
           <div className="flex w-40 shrink-0 flex-col items-center gap-1.5 sm:w-48">
             {live ? (
@@ -168,7 +230,7 @@ export function MatchSpotlight({ locale, dict }: { locale: Locale; dict: Diction
             )}
           </div>
 
-          <TeamSide team={match.away} mine={match.away.id === club.teamId} />
+          <TeamSide team={match.away} mine={followedIds.has(match.away.id)} />
         </div>
 
         {/* rodapé: data e estádio */}
