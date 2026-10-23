@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   // Impede o browser de adivinhar tipos de conteúdo (mitiga XSS por sniffing).
@@ -14,6 +15,7 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
   transpilePackages: ["@bancada/core"],
   images: {
     remotePatterns: [
