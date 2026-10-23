@@ -4,12 +4,12 @@
  * nunca bloqueia as restantes. Resultados normalizados, deduplicados e com
  * deteção automática de clubes para filtragem.
  */
-import Parser from "rss-parser";
+import { createFeedParser } from "./rss";
 import { NEWS_SOURCES, detectClubs, isFootballRelevant, type NewsItem } from "@bancada/core";
 import { cached } from "./cache";
 import { demoNews } from "./demo";
 
-const parser = new Parser({
+const parser = createFeedParser({
   timeout: 4500,
   headers: {
     "User-Agent": "bancada./0.1 (agregador de notícias de futebol; +https://bancada.app)",

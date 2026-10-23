@@ -9,7 +9,7 @@
  *
  * Tudo com falha isolada por fonte e cache generosa.
  */
-import Parser from "rss-parser";
+import { createFeedParser } from "./rss";
 import {
   CLUBS,
   detectClubs,
@@ -21,7 +21,7 @@ import {
 import { cached } from "./cache";
 
 // Google News aceita UA estilo curl; o Reddit exige um UA identificado.
-const parser = new Parser({
+const parser = createFeedParser({
   timeout: 4500,
   headers: {
     "User-Agent": "curl/8.5.0",
@@ -29,7 +29,7 @@ const parser = new Parser({
   },
 });
 
-const redditParser = new Parser({
+const redditParser = createFeedParser({
   timeout: 4500,
   headers: {
     "User-Agent": "bancada:web:v0.1 (by /u/bancada-app)",
