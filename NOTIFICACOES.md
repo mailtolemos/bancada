@@ -11,10 +11,10 @@ Vercel → projeto **bancada** → Settings → Environment Variables → adicio
 
 | Nome | Valor |
 |---|---|
-| `VAPID_PUBLIC_KEY` | `BOZ6EPrzOuz235tF5dVz-_cQo5DiV0nSluEZrMnrzHF-Z4_2c6ttvwmzk4dS5yeRsq9R8-3uDMvf6Uxxbnh8hwk` |
-| `VAPID_PRIVATE_KEY` | `Y4Qgea7xEd8WiTLrYybN2YtsbqPpiyfMSvIolW1wkjc` |
-| `VAPID_SUBJECT` | `mailto:mailtolemos@gmail.com` |
-| `CRON_SECRET` | `bancada-cron-2026` (muda para um segredo teu) |
+| `VAPID_PUBLIC_KEY` | `<VAPID_PUBLIC_KEY>` |
+| `VAPID_PRIVATE_KEY` | `<VAPID_PRIVATE_KEY>` |
+| `VAPID_SUBJECT` | `mailto:<CONTACT_EMAIL>` |
+| `CRON_SECRET` | `<CRON_SECRET>` |
 
 ## 2. Upstash Redis (recomendado para produção)
 

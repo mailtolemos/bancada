@@ -14,7 +14,7 @@ let configured = false;
 function ensureConfigured(): void {
   if (configured || !pushConfigured()) return;
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT ?? "mailto:mailtolemos@gmail.com",
+    process.env.VAPID_SUBJECT ?? "https://www.bancada.live",
     process.env.VAPID_PUBLIC_KEY!,
     process.env.VAPID_PRIVATE_KEY!
   );
